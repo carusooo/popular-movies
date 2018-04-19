@@ -1,7 +1,6 @@
 package com.example.macarus0.popularmovies.util;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.util.Log;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
@@ -20,6 +19,7 @@ public final class MovieJSONUtilities {
     private static final String TMDB_USER_RATING = "vote_average";
     private static final String TMDB_RUNTIME = "runtime";
     private static final String TMDB_POSTER_PATH = "poster_path";
+    private static final String TMDB_POPULARITY = "popularity";
     private static final String TMDB_BACKDROP_PATH = "backdrop_path";
 
     private static final String TMDB_RESULTS = "results";
@@ -43,6 +43,7 @@ public final class MovieJSONUtilities {
             movieContentValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getString(TMDB_RELEASE_DATE));
             movieContentValues.put(MovieContract.MovieEntry.COLUMN_USER_RATING, movie.getDouble(TMDB_USER_RATING));
             movieContentValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, movie.getString(TMDB_POSTER_PATH));
+            movieContentValues.put(MovieContract.MovieEntry.COLUMN_POPULARITY, movie.getString(TMDB_POPULARITY));
             popularContentValues[i] = movieContentValues;
         }
 

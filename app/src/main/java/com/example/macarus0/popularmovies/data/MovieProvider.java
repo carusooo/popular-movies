@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.util.Objects;
+
 public class MovieProvider extends ContentProvider {
 
     public static final int CODE_MOVIES_POPULAR = 100;
@@ -38,9 +40,9 @@ public class MovieProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         Log.d("delete", String.format("Attempting delete to %s", uri.toString()));
-        int numRowsDeleted = 0;
+        int numRowsDeleted;
 
         /* This is so the delete operation will return the number of rows deleted */
         if (null == selection) selection = "1";
@@ -61,21 +63,21 @@ public class MovieProvider extends ContentProvider {
 
         /* If we actually deleted any rows, notify that a change has occurred to this URI */
         if (numRowsDeleted != 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
         }
         return numRowsDeleted;
 
     }
 
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         // TODO: Implement this to handle requests for the MIME type of the data
         // at the given URI.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         Log.d("insert", String.format("Attempting insert to %s", uri.toString()));
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         throw new UnsupportedOperationException("Not yet implemented");
@@ -86,7 +88,8 @@ public class MovieProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         switch (sUriMatcher.match(uri)) {
             case CODE_MOVIES_POPULAR:
-                Log.d("bulkInsert", String.format("Attempting bulkInsert PopularMovies to %s", uri.toString()));
+                Log.d("bulkInsert", String.format("Attempting bulkInsert %d PopularMovies to %s",
+                        values.length, uri.toString()));
                 db.beginTransaction();
                 int rowsInserted = 0;
                 try {
@@ -102,7 +105,8 @@ public class MovieProvider extends ContentProvider {
                     db.endTransaction();
                 }
                 if (rowsInserted > 0) {
-                    getContext().getContentResolver().notifyChange(uri, null);
+                    Log.d("bulkInsert", String.format("Inserted %d rows", rowsInserted));
+                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
                 }
                 return rowsInserted;
 
@@ -118,7 +122,7 @@ public class MovieProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
         Cursor cursor;
@@ -138,12 +142,12 @@ public class MovieProvider extends ContentProvider {
 
 
         }
-
+        cursor.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), uri);
         return cursor;
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection,
+    public int update(@NonNull Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
         // TODO: Implement this to handle requests to update one or more rows.
         throw new UnsupportedOperationException("Not yet implemented");
@@ -168,13 +172,13 @@ public class MovieProvider extends ContentProvider {
                     "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + "(" +
                             /* Reuse the existing IDs from TMDb */
                             MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
-                            MovieContract.MovieEntry.COLUMN_TITLE + " STRING NOT NULL, " +
-                            MovieContract.MovieEntry.COLUMN_OVERVIEW + " STRING NOT NULL, " +
-                            MovieContract.MovieEntry.COLUMN_POSTER_PATH + " STRING NOT NULL, " +
-                            MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE + " STRING, " +
-                            MovieContract.MovieEntry.COLUMN_RUNTIME + " STRING, " +
-
+                            MovieContract.MovieEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_POSTER_PATH + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE + " TEXT, " +
+                            MovieContract.MovieEntry.COLUMN_RUNTIME + " TEXT, " +
                             MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " DATE NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_POPULARITY + " REAL NOT NULL, " +
                             MovieContract.MovieEntry.COLUMN_USER_RATING + " REAL NOT NULL);";
 
             db.execSQL(SQL_CREATE_MOVIE_TABLE);

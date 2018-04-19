@@ -3,6 +3,7 @@ package com.example.macarus0.popularmovies.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+
 public class MovieContract {
 
 
@@ -44,6 +45,18 @@ public class MovieContract {
 
         /* The path for the poster image */
         public static final String COLUMN_POSTER_PATH = "poster_path";
+
+        /* The path for the movie popularity */
+        public static final String COLUMN_POPULARITY = "popularity";
+
+        /* The path for the movie date of popularity */
+        public static final String COLUMN_POPULARITY_DATE = "popularity_date";
+
+        /* Get the selection statement for today's popular movies */
+        public static String getSelectionForTodaysMovies() {
+            return null;
+        }
+
 
     }
 
