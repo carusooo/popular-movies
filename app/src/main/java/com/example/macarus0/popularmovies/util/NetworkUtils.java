@@ -12,8 +12,9 @@ import java.net.URL;
 
 public class NetworkUtils {
 
-    public static String getPopularMoviesUrl() {
-        return "https://api.themoviedb.org/3/movie/popular?api_key=" + R.string.tmbd_api_key;
+    public static String getPopularMoviesUrl(String key) {
+        String urlString = "https://api.themoviedb.org/3/movie/popular?api_key=" + key;
+        return urlString;
     }
 
 

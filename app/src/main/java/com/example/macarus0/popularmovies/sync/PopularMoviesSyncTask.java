@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.macarus0.popularmovies.R;
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
 import com.example.macarus0.popularmovies.util.NetworkUtils;
@@ -15,8 +16,7 @@ public class PopularMoviesSyncTask {
     synchronized public static void syncMovies(Context context) {
         try {
 
-            String movieRequestUrl = NetworkUtils.getPopularMoviesUrl();
-            Log.d("SyncMovies", String.format("Syncing Movies from %s", movieRequestUrl));
+            String movieRequestUrl = NetworkUtils.getPopularMoviesUrl(context.getString(R.string.tmbd_api_key));
             String jsonPopularMoviesResponse = NetworkUtils.getStringFromUrl(movieRequestUrl);
 
             ContentValues[] movieValues = MovieJSONUtilities.parsePopularJSON(jsonPopularMoviesResponse);
@@ -29,7 +29,7 @@ public class PopularMoviesSyncTask {
                         movieValues);
 
             } else {
-                Log.d("SyncMovies", String.format("Got no movies from %s", movieRequestUrl));
+                Log.d("SyncMovies", String.format("Got no movies"));
 
             }
 
