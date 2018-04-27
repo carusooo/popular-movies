@@ -15,6 +15,9 @@ import com.firebase.jobdispatcher.Job;
 import com.firebase.jobdispatcher.Lifetime;
 import com.firebase.jobdispatcher.Trigger;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class PopularMoviesSyncUtils {
@@ -25,7 +28,7 @@ public class PopularMoviesSyncUtils {
     private static final String POPULAR_MOVIES_SYNC_TAG = "popular-movies-sync";
     private static boolean sInitialized;
 
-    static void scheduleFirebaseJobDispatcherSync(@NonNull final Context context) {
+    private static void scheduleFirebaseJobDispatcherSync(@NonNull final Context context) {
         Driver driver = new GooglePlayDriver(context);
         FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
 
@@ -68,6 +71,7 @@ public class PopularMoviesSyncUtils {
                  * This query is to detect whether the latest data is present in the database or
                  * if it needs to be retrieved.
                  */
+
                 Cursor cursor = context.getContentResolver().query(
                         popularMoviesQueryUri,
                         projectionColumns,
@@ -79,6 +83,7 @@ public class PopularMoviesSyncUtils {
                 if (null == cursor || cursor.getCount() == 0) {
                     startImmediateSync(context);
                 }
+                cursor.close();
 
             }
         });

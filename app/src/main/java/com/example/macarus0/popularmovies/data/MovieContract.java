@@ -3,6 +3,10 @@ package com.example.macarus0.popularmovies.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 public class MovieContract {
 
@@ -20,7 +24,9 @@ public class MovieContract {
                 appendPath(PATH_POPULAR_MOVIES)
                 .build();
 
-        public static final String TABLE_NAME = "movies";
+        public static final String POPULAR_MOVIE_TABLE_NAME = "popular_movies";
+
+        public static final String MOVIE_DETAIL_TABLE_NAME = "movie_details";
 
         /* This is the ID given by TMDb */
         public static final String COLUMN_ID = "id";
@@ -54,7 +60,9 @@ public class MovieContract {
 
         /* Get the selection statement for today's popular movies */
         public static String getSelectionForTodaysMovies() {
-            return null;
+            SimpleDateFormat dateFormat = new SimpleDateFormat(
+                    "yyyy-MM-dd", Locale.getDefault());
+            return "date(" + COLUMN_POPULARITY_DATE + ") >= date(\""+ dateFormat.format(new Date()) +"\")";
         }
 
 

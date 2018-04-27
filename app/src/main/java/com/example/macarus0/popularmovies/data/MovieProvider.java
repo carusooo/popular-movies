@@ -51,7 +51,7 @@ public class MovieProvider extends ContentProvider {
 
             case CODE_MOVIES_POPULAR:
                 numRowsDeleted = mOpenHelper.getWritableDatabase().delete(
-                        MovieContract.MovieEntry.TABLE_NAME,
+                        MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME,
                         selection,
                         selectionArgs);
 
@@ -94,7 +94,7 @@ public class MovieProvider extends ContentProvider {
                 int rowsInserted = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insertWithOnConflict(MovieContract.MovieEntry.TABLE_NAME, null,
+                        long _id = db.insertWithOnConflict(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME, null,
                                 value, SQLiteDatabase.CONFLICT_REPLACE);
                         if (_id != -1) {
                             rowsInserted++;
@@ -128,7 +128,7 @@ public class MovieProvider extends ContentProvider {
         Cursor cursor;
         switch (sUriMatcher.match(uri)) {
             case CODE_MOVIES_POPULAR:
-                cursor = db.query(MovieContract.MovieEntry.TABLE_NAME,
+                cursor = db.query(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -166,10 +166,8 @@ public class MovieProvider extends ContentProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            Log.d("onCreate", String.format("Creating table %s", MovieContract.MovieEntry.TABLE_NAME));
-
             final String SQL_CREATE_MOVIE_TABLE =
-                    "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + "(" +
+                    "CREATE TABLE " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME + "(" +
                             /* Reuse the existing IDs from TMDb */
                             MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
                             MovieContract.MovieEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
@@ -179,7 +177,10 @@ public class MovieProvider extends ContentProvider {
                             MovieContract.MovieEntry.COLUMN_RUNTIME + " TEXT, " +
                             MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " DATE NOT NULL, " +
                             MovieContract.MovieEntry.COLUMN_POPULARITY + " REAL NOT NULL, " +
-                            MovieContract.MovieEntry.COLUMN_USER_RATING + " REAL NOT NULL);";
+                            MovieContract.MovieEntry.COLUMN_USER_RATING + " REAL NOT NULL," +
+                            MovieContract.MovieEntry.COLUMN_POPULARITY_DATE + " DATETIME DEFAULT CURRENT_DATE);";
+            Log.d("onCreate", String.format("Creating table %s as %s",
+                    MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME, SQL_CREATE_MOVIE_TABLE));
 
             db.execSQL(SQL_CREATE_MOVIE_TABLE);
 
@@ -187,7 +188,7 @@ public class MovieProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME);
             onCreate(db);
 
         }
