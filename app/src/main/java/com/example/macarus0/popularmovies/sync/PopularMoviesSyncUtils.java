@@ -5,22 +5,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.example.macarus0.popularmovies.DetailActivity;
 import com.example.macarus0.popularmovies.data.MovieContract;
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.Driver;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.Trigger;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class PopularMoviesSyncUtils {
+
+    private static final String TAG = PopularMoviesSyncUtils.class.getName();
 
     private static final int SYNC_INTERVAL_HOURS = 12;
     private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
@@ -28,50 +22,23 @@ public class PopularMoviesSyncUtils {
     private static final String POPULAR_MOVIES_SYNC_TAG = "popular-movies-sync";
     private static boolean sInitialized;
 
-    private static void scheduleFirebaseJobDispatcherSync(@NonNull final Context context) {
-        Driver driver = new GooglePlayDriver(context);
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
-
-        Job syncMoviesJob = dispatcher.newJobBuilder()
-                .setService(PopularMoviesFirebaseJobService.class)
-                .setTag(POPULAR_MOVIES_SYNC_TAG)
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.UNTIL_NEXT_BOOT)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(
-                        SYNC_INTERVAL_SECONDS,
-                        SYNC_INTERVAL_SECONDS + SYNC_FLEXTIME_SECONDS))
-                .setReplaceCurrent(true)
-                .build();
-
-        dispatcher.schedule(syncMoviesJob);
-    }
 
     synchronized public static void initialize(@NonNull final Context context) {
         // Only create this once per app lifetime
         if (sInitialized) return;
-        // Add the job to the dispatcher scheduler
-        scheduleFirebaseJobDispatcherSync(context);
+        Log.d(TAG, "initializing");
 
         Thread checkForContent = new Thread(new Runnable() {
             @Override
             public void run() {
-                Uri popularMoviesQueryUri = MovieContract.MovieEntry.CONTENT_URI;
-
-
-                context.getContentResolver().delete(
-                        popularMoviesQueryUri,
-                        null,
-                        null
-                );
+                Uri popularMoviesQueryUri = MovieContract.MovieEntry.POPULAR_URI;
 
                 String[] projectionColumns = {MovieContract.MovieEntry.COLUMN_ID};
                 String selection = MovieContract.MovieEntry.getSelectionForTodaysMovies();
                 /*
-                 * This query is to detect whether the latest data is present in the database or
+                 * This query is to detect whether the today's data is present in the database or
                  * if it needs to be retrieved.
                  */
-
                 Cursor cursor = context.getContentResolver().query(
                         popularMoviesQueryUri,
                         projectionColumns,
@@ -80,22 +47,25 @@ public class PopularMoviesSyncUtils {
                         null
                 );
 
-                if (null == cursor || cursor.getCount() == 0) {
-                    startImmediateSync(context);
-                }
+              //  if (null == cursor || cursor.getCount() == 0) {
+                    Log.d(TAG, "Kicking off immediate sync");
+                    startImmediateSync(context, null);
+                //}
                 cursor.close();
 
             }
         });
 
         checkForContent.start();
+        sInitialized = true;
     }
 
     /*
      * Helper method to start a sync immediately
      */
-    public static void startImmediateSync(@NonNull final Context context) {
+    private static void startImmediateSync(@NonNull final Context context, String movieId) {
         Intent immediateSyncIntent = new Intent(context, PopularMoviesSyncIntentService.class);
+        immediateSyncIntent.putExtra(DetailActivity.EXTRA_DETAIL_MOVIE_ID, movieId);
         context.startService(immediateSyncIntent);
     }
 

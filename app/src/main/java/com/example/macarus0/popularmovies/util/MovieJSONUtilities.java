@@ -56,12 +56,7 @@ public final class MovieJSONUtilities {
 
         JSONObject movie = new JSONObject(movieJson);
         movieContentValues.put(MovieContract.MovieEntry.COLUMN_ID, movie.getInt(TMDB_ID));
-        movieContentValues.put(MovieContract.MovieEntry.COLUMN_TITLE, movie.getString(TMDB_TITLE));
-        movieContentValues.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, movie.getString(TMDB_OVERVIEW));
-        movieContentValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getString(TMDB_RELEASE_DATE));
-        movieContentValues.put(MovieContract.MovieEntry.COLUMN_USER_RATING, movie.getDouble(TMDB_USER_RATING));
-        movieContentValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, movie.getString(TMDB_POSTER_PATH));
-       // movieContentValues.put(MovieContract.MovieEntry.COLUMN_RUNTIME, movie.getString(TMDB_RUNTIME));
+        movieContentValues.put(MovieContract.MovieEntry.COLUMN_RUNTIME, movie.getString(TMDB_RUNTIME));
 
         return movieContentValues;
     }

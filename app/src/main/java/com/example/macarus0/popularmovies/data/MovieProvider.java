@@ -1,6 +1,7 @@
 package com.example.macarus0.popularmovies.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -11,29 +12,34 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import java.util.Objects;
-
 public class MovieProvider extends ContentProvider {
 
-    public static final int CODE_MOVIES_POPULAR = 100;
-    public static final int CODE_MOVIE = 101;
+    private static final int CODE_MOVIES_POPULAR = 100;
+    private static final int CODE_MOVIE_POPULAR = 101;
+    private static final int CODE_MOVIE_DETAILS = 102;
+    public static final int CODE_MOVIE_TOP_RATED = 103;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-    MovieDbHelper mOpenHelper;
+    private MovieDbHelper mOpenHelper;
 
-    public static UriMatcher buildUriMatcher() {
+    private static UriMatcher buildUriMatcher() {
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MovieContract.CONTENT_AUTHORITY;
 
         /* This URI is content://com.example.macarus0.popularmovies/movies/ */
         matcher.addURI(authority, MovieContract.PATH_POPULAR_MOVIES, CODE_MOVIES_POPULAR);
-
         Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_POPULAR_MOVIES));
+
         /* This URI is content://com.example.macarus0.popularmovies/movies/#### where #### is the
          *  ID of a movie.
          */
-        matcher.addURI(authority, MovieContract.PATH_POPULAR_MOVIES + "/#", CODE_MOVIE);
-
+        matcher.addURI(authority, MovieContract.PATH_POPULAR_MOVIES + "/#", CODE_MOVIE_POPULAR);
         Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_POPULAR_MOVIES + "/#"));
+
+        /* This URI is content://com.example.macarus0.popularmovies/details/#### where #### is the
+         *  ID of a movie.
+         */
+        matcher.addURI(authority, MovieContract.PATH_MOVIE_DETAILS + "/#", CODE_MOVIE_DETAILS);
+        Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_DETAILS + "/#"));
 
         return matcher;
 
@@ -63,7 +69,7 @@ public class MovieProvider extends ContentProvider {
 
         /* If we actually deleted any rows, notify that a change has occurred to this URI */
         if (numRowsDeleted != 0) {
-            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null);
         }
         return numRowsDeleted;
 
@@ -78,8 +84,29 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
-        Log.d("insert", String.format("Attempting insert to %s", uri.toString()));
+        Log.d("insert", String.format("Attempting insert %s to %s %s",
+                values.get(MovieContract.MovieEntry.COLUMN_ID), uri.toString(), values.toString()));
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        long id;
+        switch (sUriMatcher.match(uri)) {
+            case CODE_MOVIE_DETAILS:
+                db.beginTransaction();
+                try {
+                    id = db.insertWithOnConflict(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME,
+                            null,
+                            values, SQLiteDatabase.CONFLICT_REPLACE);
+                    if(id == -1) {
+                        Log.d("insert", "Failed to insert ");
+                    }
+                    else {
+                        db.setTransactionSuccessful();
+                    }
+                } finally
+                {
+                    db.endTransaction();
+                }
+                return ContentUris.withAppendedId(uri, id);
+        }
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -106,7 +133,7 @@ public class MovieProvider extends ContentProvider {
                 }
                 if (rowsInserted > 0) {
                     Log.d("bulkInsert", String.format("Inserted %d rows", rowsInserted));
-                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+                    getContext().getContentResolver().notifyChange(uri, null);
                 }
                 return rowsInserted;
 
@@ -126,6 +153,7 @@ public class MovieProvider extends ContentProvider {
                         String[] selectionArgs, String sortOrder) {
         final SQLiteDatabase db = mOpenHelper.getReadableDatabase();
         Cursor cursor;
+        String[] selectionArguments;
         switch (sUriMatcher.match(uri)) {
             case CODE_MOVIES_POPULAR:
                 cursor = db.query(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME,
@@ -136,13 +164,33 @@ public class MovieProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case CODE_MOVIE_POPULAR:
+                Log.d("MovieQuery", String.format("Looking for %s", uri.getLastPathSegment()));
+                selectionArguments = new String[]{uri.getLastPathSegment()};
+                cursor = db.query(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME,
+                        projection,
+                        MovieContract.MovieEntry.COLUMN_ID + " = ?",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
+                break;
 
+            case CODE_MOVIE_DETAILS:
+                Log.d("DetailsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
+                selectionArguments = new String[]{uri.getLastPathSegment()};
+                cursor = db.query(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME,
+                        projection,
+                        MovieContract.MovieEntry.COLUMN_ID + " = ?",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
-
-
         }
-        cursor.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), uri);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -155,9 +203,9 @@ public class MovieProvider extends ContentProvider {
 
 
     class MovieDbHelper extends SQLiteOpenHelper {
-        public static final String MOVIE_DB_NAME = "movies.db";
-
-        public static final int MOVIE_DB_VERSION = 1;
+        static final String MOVIE_DB_NAME = "movies.db";
+        static final int MOVIE_DB_VERSION = 1;
+        private final String TAG = MovieDbHelper.class.getName();
 
         MovieDbHelper(Context context) {
             super(context, MOVIE_DB_NAME, null, MOVIE_DB_VERSION);
@@ -166,7 +214,8 @@ public class MovieProvider extends ContentProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            final String SQL_CREATE_MOVIE_TABLE =
+            Log.d(TAG, "Creating Database");
+            final String SQL_CREATE_POPULAR_MOVIE_TABLE =
                     "CREATE TABLE " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME + "(" +
                             /* Reuse the existing IDs from TMDb */
                             MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
@@ -180,15 +229,22 @@ public class MovieProvider extends ContentProvider {
                             MovieContract.MovieEntry.COLUMN_USER_RATING + " REAL NOT NULL," +
                             MovieContract.MovieEntry.COLUMN_POPULARITY_DATE + " DATETIME DEFAULT CURRENT_DATE);";
             Log.d("onCreate", String.format("Creating table %s as %s",
-                    MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME, SQL_CREATE_MOVIE_TABLE));
+                    MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME, SQL_CREATE_POPULAR_MOVIE_TABLE));
+            db.execSQL(SQL_CREATE_POPULAR_MOVIE_TABLE);
 
-            db.execSQL(SQL_CREATE_MOVIE_TABLE);
+            final String SQL_CREATE_MOVIE_DETAIL_TABLE =
+                    "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME + "(" +
+                            MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                            MovieContract.MovieEntry.COLUMN_RUNTIME + " TEXT NOT NULL" +
+                            ");";
+            db.execSQL(SQL_CREATE_MOVIE_DETAIL_TABLE);
 
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME);
             onCreate(db);
 
         }

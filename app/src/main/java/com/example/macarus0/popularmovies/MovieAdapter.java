@@ -9,12 +9,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.macarus0.popularmovies.util.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
     final private MovieAdapterOnClickHandler mOnClickHandler;
-    private Context mContext;
+    private final Context mContext;
     private Cursor mCursor;
 
     public MovieAdapter(Context context, MovieAdapterOnClickHandler onClickHandler) {
@@ -44,8 +45,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
-        String POSTER_IMAGE_PREFIX = "https://image.tmdb.org/t/p/w185/";
-        Picasso.with(mContext).load(POSTER_IMAGE_PREFIX + mCursor.getString(MainActivity.INDEX_POSTER_GRID_POSTER_PATH))
+        holder.posterImageView.setContentDescription(mCursor.getString(MainActivity.INDEX_POSTER_GRID_TITLE));
+        Picasso.with(mContext).load(NetworkUtils.getPosterUrl(
+                mContext.getString(R.string.tmbd_api_key),
+                mCursor.getString(MainActivity.INDEX_POSTER_GRID_POSTER_PATH)))
                 .into(holder.posterImageView);
     }
 
@@ -54,10 +57,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public ImageView posterImageView;
+        final ImageView posterImageView;
         public long mMovieId;
 
-        public ViewHolder(View v) {
+        ViewHolder(View v) {
             super(v);
             posterImageView = v.findViewById(R.id.poster_imageview);
             v.setOnClickListener(this);

@@ -1,7 +1,7 @@
 package com.example.macarus0.popularmovies;
 
+import android.content.Intent;
 import android.support.v4.app.LoaderManager;
-import android.content.Context;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.database.Cursor;
@@ -11,16 +11,9 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.sync.PopularMoviesSyncUtils;
-import com.squareup.picasso.Picasso;
-
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,17 +22,19 @@ public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         MovieAdapter.MovieAdapterOnClickHandler{
 
-    public static final String[] POSTER_GRID_PROJECTION = {
+    private static final String[] POSTER_GRID_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_POSTER_PATH,
+            MovieContract.MovieEntry.COLUMN_TITLE
     };
 
     public static final int INDEX_POSTER_GRID_MOVIE_ID = 0;
     public static final int INDEX_POSTER_GRID_POSTER_PATH = 1;
+    public static final int INDEX_POSTER_GRID_TITLE = 2;
 
     private static final int ID_MOVIE_LOADER = 999;
-    GridLayoutManager mLayoutManager;
-    MovieAdapter mMovieAdapter;
+
+    private MovieAdapter mMovieAdapter;
     @BindView(R.id.recycler_view)
     RecyclerView mRecyclerView;
     private int mPosition = RecyclerView.NO_POSITION;
@@ -50,11 +45,9 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mLayoutManager = new GridLayoutManager(this, 2);
+        GridLayoutManager mLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mLayoutManager);
-
         mRecyclerView.setHasFixedSize(true);
-
         mMovieAdapter = new MovieAdapter(this, this);
         mRecyclerView.setAdapter(mMovieAdapter);
 
@@ -62,12 +55,11 @@ public class MainActivity extends AppCompatActivity implements
 
         PopularMoviesSyncUtils.initialize(this);
 
-
     }
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        Log.d("onLoadFinished", "Swapping Cursor");
+        Log.d("onLoadFinished", String.format("Swapping Cursor, retrieved %d movies", data.getCount()));
         mMovieAdapter.swapCursor(data);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mRecyclerView.smoothScrollToPosition(mPosition);
@@ -79,22 +71,26 @@ public class MainActivity extends AppCompatActivity implements
 
         switch (id) {
             case ID_MOVIE_LOADER:
-                String sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC";
+                String sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC LIMIT 20";
                 return new CursorLoader(this,
-                        MovieContract.MovieEntry.CONTENT_URI,
+                        MovieContract.MovieEntry.POPULAR_URI,
                         POSTER_GRID_PROJECTION,
+                        MovieContract.MovieEntry.getSelectionForTodaysMovies(),
                         null,
-                        null,
-                       sortOrder);
+                        sortOrder);
 
             default:
                 throw new RuntimeException("Loader Not Implemented: " + id);
         }
     }
 
+
+
     @Override
     public void onClick(long id) {
-        Log.d("onClick", String.format("Clicked on https://api.themoviedb.org/3/movie/%s?api_key=%s", id, R.string.tmbd_api_key));
+        Intent detailIntent = new Intent(getApplicationContext(), DetailActivity.class);
+        detailIntent.putExtra(DetailActivity.EXTRA_DETAIL_MOVIE_ID, Long.toString(id));
+        startActivity(detailIntent);
     }
 
     @Override
