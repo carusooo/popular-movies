@@ -2,4 +2,8 @@
     <string name="app_name">Popular Movies</string>
     <string name="rating_suffix">%s/10</string>
     <string name="runtime_units">%s minutes</string>
+    <string-array name="sort_options">
+        <item>Popular</item>
+        <item>Top Rated</item>
+    </string-array>
 </resources>

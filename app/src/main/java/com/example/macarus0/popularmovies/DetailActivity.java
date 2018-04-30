@@ -77,9 +77,6 @@ public class DetailActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_detail);
         ButterKnife.bind(this);
 
-        // Hide the action bar to make the view more immersive
-        getSupportActionBar().hide();
-
         // Get the movie ID and then look up that ID in the ContentResolver
         Intent intent = getIntent();
         mMovieId = intent.getStringExtra(EXTRA_DETAIL_MOVIE_ID);

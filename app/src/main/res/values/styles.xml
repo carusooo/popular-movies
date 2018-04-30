@@ -1,17 +1,52 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
     </style>
 
+    <style name="MainToolbar" parent="AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?attr/actionBarSize</item>
+        <item name="android:background">?attr/colorPrimaryDark</item>
+        <item name="android:elevation" tools:targetApi="lollipop">4dp</item>
+        <item name="android:theme"> @style/ToolbarText</item>
+    </style>
+
+    <style name="ToolbarText" parent="AppTheme">
+        <item name="android:background">?attr/colorPrimaryDark</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Spinner" parent="AppTheme">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">end</item>
+        <item name="android:theme"> @style/ToolbarText</item>
+    </style>
+
+    <style name="SpinnerItem" parent="AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:theme"> @style/ToolbarText</item>
+    </style>
+
+
+    <style name="SpinnerDropdownItem" parent="AppTheme">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">8dip</item>
+        <item name="android:theme"> @style/ToolbarText</item>
+    </style>
+
     <style name="DetailTitle" parent="AppTheme">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">60dp</item>
         <item name="android:textSize">30sp</item>
-        <item name="android:textColor">@color/colorWhite</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:padding">8dp</item>
         <item name="android:elevation" tools:targetApi="lollipop">2dp</item>
 

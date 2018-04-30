@@ -11,6 +11,8 @@ import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
 import com.example.macarus0.popularmovies.util.NetworkUtils;
 
+import java.util.Objects;
+
 
 class PopularMoviesSyncTask {
 
@@ -20,7 +22,7 @@ class PopularMoviesSyncTask {
         try {
 
             String api_key = context.getString(R.string.tmbd_api_key);
-            if(api_key == context.getString(R.string.tmbd_api_key_dummy)) {
+            if(Objects.equals(api_key, context.getString(R.string.tmbd_api_key_dummy))) {
                 throw new UnsupportedOperationException("Missing proper API key");
             }
             String requestUrl;
