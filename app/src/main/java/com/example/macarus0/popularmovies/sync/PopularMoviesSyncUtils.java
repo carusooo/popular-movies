@@ -19,8 +19,11 @@ public class PopularMoviesSyncUtils {
 
 
     synchronized public static void initialize(@NonNull final Context context) {
-        // Only create this once per app lifetime
-        if (sInitialized) return;
+        /**
+         *  Checks if the database of popular movies needs to be reloaded or not
+         * and start an ASyncTask to populate the ContentProvider
+         */
+
         Log.d(TAG, "initializing");
 
         Thread checkForContent = new Thread(new Runnable() {
@@ -56,7 +59,7 @@ public class PopularMoviesSyncUtils {
         sInitialized = true;
     }
 
-    /*
+    /**
      * Helper method to start a sync immediately
      */
     public static void syncMovieData(@NonNull final Context context, String movieId) {
