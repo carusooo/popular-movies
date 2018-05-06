@@ -9,16 +9,12 @@ import android.util.Log;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
 
 public class PopularMoviesSyncUtils {
 
     private static final String TAG = PopularMoviesSyncUtils.class.getName();
-
-    private static final int SYNC_INTERVAL_HOURS = 12;
-    private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
-    private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS / 3;
-    private static final String POPULAR_MOVIES_SYNC_TAG = "popular-movies-sync";
     private static boolean sInitialized;
 
 
@@ -49,7 +45,9 @@ public class PopularMoviesSyncUtils {
                 if (null == cursor || cursor.getCount() == 0) {
                     syncMovieData(context, null);
                 }
-                cursor.close();
+                if (null != cursor) {
+                    cursor.close();
+                }
 
             }
         });
@@ -71,11 +69,11 @@ public class PopularMoviesSyncUtils {
     private static class SyncTask extends AsyncTask<Void, Void, Void>
     {
         // Since this is static, keep a reference to the service that started the task
-        private Context mContext;
-        private String mMovieId;
+        private WeakReference<Context> mContext;
+        private final String mMovieId;
 
         SyncTask(Context context, String movieId ) {
-            mContext = context;
+            mContext = new WeakReference<>(context);
             mMovieId = movieId;
         }
 

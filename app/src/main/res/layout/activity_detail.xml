@@ -13,7 +13,11 @@
         app:autoSizeTextType="uniform"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Office Space" />
+        tools:text="Office Space"
+        tools:ignore="MissingPrefix" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
     <FrameLayout
         android:id="@+id/detail_layout"
@@ -28,7 +32,6 @@
             <TextView
                 android:id="@+id/year_textview"
                 style="@style/DetailYear"
-                android:gravity="center_vertical"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/runtime_textview"
@@ -38,7 +41,6 @@
             <TextView
                 android:id="@+id/runtime_textview"
                 style="@style/DetailRuntime"
-                android:gravity="center_vertical"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toEndOf="@id/year_textview"
                 app:layout_constraintEnd_toStartOf="@id/rating_textview"
@@ -47,7 +49,6 @@
             <TextView
                 android:id="@+id/rating_textview"
                 style="@style/DetailRating"
-                android:gravity="center_vertical"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toEndOf="@id/runtime_textview"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -59,6 +60,7 @@
                 style="@style/DetailPoster"
                 android:contentDescription="@null"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/year_textview" />
             <!-- No contentDescription needed for the poster image -->
 
@@ -79,5 +81,5 @@
             style="@style/OfflineError"
             layout="@layout/error_offline_view" />
     </FrameLayout>
-
+    </ScrollView>
 </LinearLayout>

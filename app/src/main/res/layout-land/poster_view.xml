@@ -9,7 +9,7 @@
     <ImageView
         android:id="@+id/poster_imageview"
         android:layout_width="match_parent"
-        android:layout_height="278dp"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
@@ -17,4 +17,3 @@
     <!--The ContentDescription for poster_imageview is set to the movie title in MainActivity-->
 
 </FrameLayout>
-

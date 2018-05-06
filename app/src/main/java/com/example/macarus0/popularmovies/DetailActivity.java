@@ -38,19 +38,16 @@ public class DetailActivity extends AppCompatActivity implements
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_POSTER_PATH,
             MovieContract.MovieEntry.COLUMN_TITLE,
-            MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE,
             MovieContract.MovieEntry.COLUMN_OVERVIEW,
             MovieContract.MovieEntry.COLUMN_RELEASE_DATE,
             MovieContract.MovieEntry.COLUMN_USER_RATING,
     };
 
-    public static final int INDEX_MOVIE_DETAIL_MOVIE_ID = 0;
     private static final int INDEX_MOVIE_DETAIL_POSTER_PATH = 1;
     private static final int INDEX_MOVIE_DETAIL_TITLE = 2;
-    public static final int INDEX_MOVIE_DETAIL_ORIGINAL_TITLE = 3;
-    private static final int INDEX_MOVIE_DETAIL_OVERVIEW = 4;
-    private static final int INDEX_MOVIE_DETAIL_RELEASE_DATE = 5;
-    private static final int INDEX_MOVIE_DETAIL_USER_RATING = 6;
+    private static final int INDEX_MOVIE_DETAIL_OVERVIEW = 3;
+    private static final int INDEX_MOVIE_DETAIL_RELEASE_DATE = 4;
+    private static final int INDEX_MOVIE_DETAIL_USER_RATING = 5;
 
     private static final String[] MOVIE_DETAIL_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
@@ -91,9 +88,6 @@ public class DetailActivity extends AppCompatActivity implements
     ImageView mOfflineErrorIcon;
     @BindView(R.id.offline_error_retry_button)
     Button mOfflineErrorRetryButton;
-
-    Cursor mBaseCursor;
-    Cursor mDetailsCursor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

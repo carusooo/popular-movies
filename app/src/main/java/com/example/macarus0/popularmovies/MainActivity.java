@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState != null) {
             mSpinnerPosition = savedInstanceState.getInt(SPINNER_POSITION);
         }
-        mSpinner.setSelection(mSpinnerPosition, false); // Set the spinner to the default value before attaching the listener
         mSpinner.setOnItemSelectedListener(this);
+        mSpinner.setSelection(mSpinnerPosition, false); // Set the spinner to the default value before attaching the listener
 
         // Set up the GridLayout of poster images
         mLayoutManager = new GridLayoutManager(this, 2);
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mOfflineErrorIcon.setImageResource(R.drawable.ic_cloud_off_grey_24dp);
         mOfflineErrorTitle.setText(getText(R.string.error_offline_title));
-        mOfflineErrorText.setText(getText(R.string.error_offline_details_text));
+        mOfflineErrorText.setText(getText(R.string.error_offline_main_text));
         mOfflineErrorRetryButton.setText(R.string.error_offline_button_label);
         mOfflineErrorRetryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
         mSpinnerPosition = position;
-        if(NetworkUtils.isOnline(this) == true) {
+        if(NetworkUtils.isOnline(this)) {
             switch (position) {
                 case 0:
                     // Popular was selected

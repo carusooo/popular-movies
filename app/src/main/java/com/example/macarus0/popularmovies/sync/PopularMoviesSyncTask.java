@@ -11,6 +11,7 @@ import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
 import com.example.macarus0.popularmovies.util.NetworkUtils;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 
@@ -18,16 +19,17 @@ class PopularMoviesSyncTask {
 
     private static final String TAG = PopularMoviesSyncTask.class.getName();
 
-    synchronized public static void syncMovies(Context context, String movieId) {
+    synchronized public static void syncMovies(WeakReference<Context> contextRef, String movieId) {
+        Context context = contextRef.get();
         if (context == null) return;
         try {
 
             String api_key = context.getString(R.string.tmbd_api_key);
-            if(Objects.equals(api_key, context.getString(R.string.tmbd_api_key_dummy))) {
+            if (api_key.equals(context.getString(R.string.tmbd_api_key_dummy))) {
                 throw new UnsupportedOperationException("Missing proper API key");
             }
             String requestUrl;
-            if(null == movieId) {
+            if (null == movieId) {
                 // Update the popular movies with both popular and top-rated
                 requestUrl = NetworkUtils.getPopularMoviesUrl(context.getString(R.string.tmbd_api_key));
                 String jsonPopularMoviesResponse = NetworkUtils.getStringFromUrl(requestUrl);
@@ -38,7 +40,7 @@ class PopularMoviesSyncTask {
                 String jsonTopMoviesResponse = NetworkUtils.getStringFromUrl(requestUrl);
                 ContentValues[] topMovieValues = MovieJSONUtilities.parsePopularJSON(jsonTopMoviesResponse);
 
-                if(popularMovieValues != null && popularMovieValues.length != 0) {
+                if (popularMovieValues != null && popularMovieValues.length != 0) {
                     ContentResolver contentResolver = context.getContentResolver();
                     int rowsInserted = contentResolver.bulkInsert(
                             MovieContract.MovieEntry.POPULAR_URI,
@@ -59,7 +61,7 @@ class PopularMoviesSyncTask {
                 String jsonMovieDetailResponse = NetworkUtils.getStringFromUrl(requestUrl);
                 ContentValues movieValues = MovieJSONUtilities.parseMovie(jsonMovieDetailResponse);
 
-                if(movieValues != null) {
+                if (movieValues != null) {
                     ContentResolver contentResolver = context.getContentResolver();
 
                     Uri newRow = contentResolver.insert(
