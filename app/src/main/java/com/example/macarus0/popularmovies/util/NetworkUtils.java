@@ -14,11 +14,6 @@ import java.net.URL;
 
 public class NetworkUtils {
 
-    public static String MOVIES_URL = "popular-movies";
-
-    public static final String POSTER_PATH = "https://image.tmdb.org/t/p/w185/";
-
-
     public static String getPopularMoviesUrl(String key) {
         return String.format("https://api.themoviedb.org/3/movie/popular?api_key=%s", key);
     }

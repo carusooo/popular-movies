@@ -25,18 +25,15 @@ class PopularMoviesSyncTask {
         try {
 
             String api_key = context.getString(R.string.tmbd_api_key);
-            if (api_key.equals(context.getString(R.string.tmbd_api_key_dummy))) {
-                throw new UnsupportedOperationException("Missing proper API key");
-            }
             String requestUrl;
             if (null == movieId) {
                 // Update the popular movies with both popular and top-rated
-                requestUrl = NetworkUtils.getPopularMoviesUrl(context.getString(R.string.tmbd_api_key));
+                requestUrl = NetworkUtils.getPopularMoviesUrl(api_key);
                 String jsonPopularMoviesResponse = NetworkUtils.getStringFromUrl(requestUrl);
                 ContentValues[] popularMovieValues = MovieJSONUtilities.parsePopularJSON(jsonPopularMoviesResponse);
 
 
-                requestUrl = NetworkUtils.getTopRatedMoviesUrl(context.getString(R.string.tmbd_api_key));
+                requestUrl = NetworkUtils.getTopRatedMoviesUrl(api_key);
                 String jsonTopMoviesResponse = NetworkUtils.getStringFromUrl(requestUrl);
                 ContentValues[] topMovieValues = MovieJSONUtilities.parsePopularJSON(jsonTopMoviesResponse);
 
@@ -57,7 +54,7 @@ class PopularMoviesSyncTask {
                 }
             } else {
                 // Populate the details for a specific movie
-                requestUrl = NetworkUtils.getMoviesUrl(context.getString(R.string.tmbd_api_key), movieId);
+                requestUrl = NetworkUtils.getMoviesUrl(api_key, movieId);
                 String jsonMovieDetailResponse = NetworkUtils.getStringFromUrl(requestUrl);
                 ContentValues movieValues = MovieJSONUtilities.parseMovie(jsonMovieDetailResponse);
 
