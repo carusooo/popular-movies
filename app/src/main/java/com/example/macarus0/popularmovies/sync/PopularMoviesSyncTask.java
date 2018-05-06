@@ -19,6 +19,7 @@ class PopularMoviesSyncTask {
     private static final String TAG = PopularMoviesSyncTask.class.getName();
 
     synchronized public static void syncMovies(Context context, String movieId) {
+        if (context == null) return;
         try {
 
             String api_key = context.getString(R.string.tmbd_api_key);
@@ -70,7 +71,6 @@ class PopularMoviesSyncTask {
                 }
 
             }
-
 
 
         } catch (Exception e) {

@@ -4,20 +4,26 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
+import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
-import com.example.macarus0.popularmovies.sync.PopularMoviesSyncIntentService;
+import com.example.macarus0.popularmovies.sync.PopularMoviesSyncUtils;
 import com.example.macarus0.popularmovies.util.NetworkUtils;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -58,6 +64,7 @@ public class DetailActivity extends AppCompatActivity implements
 
     public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
     private String mMovieId;
+
     @BindView(R.id.poster_imageview)
     ImageView mPoster;
     @BindView(R.id.description_textview)
@@ -70,6 +77,23 @@ public class DetailActivity extends AppCompatActivity implements
     TextView mRating;
     @BindView(R.id.detail_title)
     TextView mTitle;
+    @BindView(R.id.detail_content)
+    ConstraintLayout mContent;
+    @BindView(R.id.spinKitView)
+    ProgressBar mProgressBar;
+    @BindView(R.id.offline_error_details)
+    ConstraintLayout mOfflineError;
+    @BindView(R.id.offline_error_title)
+    TextView mOfflineErrorTitle;
+    @BindView(R.id.offline_error_text)
+    TextView mOfflineErrorText;
+    @BindView(R.id.offline_icon_imageview)
+    ImageView mOfflineErrorIcon;
+    @BindView(R.id.offline_error_retry_button)
+    Button mOfflineErrorRetryButton;
+
+    Cursor mBaseCursor;
+    Cursor mDetailsCursor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,27 +105,9 @@ public class DetailActivity extends AppCompatActivity implements
         Intent intent = getIntent();
         mMovieId = intent.getStringExtra(EXTRA_DETAIL_MOVIE_ID);
 
-        // Check if the movie details are available
-        Cursor detailCursor = getContentResolver().query(
-                MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
-                MOVIE_DETAIL_PROJECTION,
-                null,
-                null,
-                null
-        );
-        // If the details are not available, send a request to fetch them
-        if (null == detailCursor || detailCursor.getCount() == 0) {
-            // Set up a Loader to alert when the fetch is complete
-            getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, this);
-            // Kick off the request
-            Intent detailSyncIntent = new Intent(this, PopularMoviesSyncIntentService.class);
-            detailSyncIntent.putExtra(DetailActivity.EXTRA_DETAIL_MOVIE_ID, mMovieId);
-            this.startService(detailSyncIntent);
 
-            // TODO: Add loading animation here
-        } else {
-            detailCursor.moveToFirst();
-        }
+        showLoading();
+
         Cursor baseCursor = getContentResolver().query(
                 MovieContract.MovieEntry.getMovieUri(mMovieId),
                 POPULAR_MOVIE_DETAIL_PROJECTION,
@@ -110,12 +116,70 @@ public class DetailActivity extends AppCompatActivity implements
                 null
         );
         baseCursor.moveToFirst();
+        populateUI(baseCursor);
 
-        populateUI(baseCursor, detailCursor);
+        // Check if the movie details are available
+        Cursor detailCursor = getContentResolver().query(
+                MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
+                MOVIE_DETAIL_PROJECTION,
+                null,
+                null,
+                null
+        );
+
+        // If the details are not available, send a request to fetch them
+        if (null == detailCursor || detailCursor.getCount() == 0) {
+            fetchDetails();
+        } else {
+            detailCursor.moveToFirst();
+            populateDetails(detailCursor);
+        }
+    }
+
+    private void fetchDetails() {
+        if(NetworkUtils.isOnline(this)) {
+            // Set up a Loader to alert when the fetch is complete
+            getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, this);
+            // Kick off the request
+            PopularMoviesSyncUtils.syncMovieData(this, mMovieId);
+        } else {
+            showOffline();
+        }
+    }
+
+    private void showLoading() {
+        mContent.setVisibility(View.INVISIBLE);
+        mOfflineError.setVisibility(View.INVISIBLE);
+
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void showContent() {
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mOfflineError.setVisibility(View.INVISIBLE);
+
+        mContent.setVisibility(View.VISIBLE);
+    }
+
+    private void showOffline() {
+        mContent.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.INVISIBLE);
+
+        mOfflineErrorIcon.setImageResource(R.drawable.ic_cloud_off_grey_24dp);
+        mOfflineErrorTitle.setText(getText(R.string.error_offline_title));
+        mOfflineErrorText.setText(getText(R.string.error_offline_details_text));
+        mOfflineErrorRetryButton.setText(R.string.error_offline_button_label);
+        mOfflineErrorRetryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fetchDetails();
+            }
+        });
+        mOfflineError.setVisibility(View.VISIBLE);
     }
 
 
-    private void populateUI(Cursor baseCursor, Cursor detailCursor) {
+    private void populateUI(Cursor baseCursor) {
         mTitle.setText(baseCursor.getString(INDEX_MOVIE_DETAIL_TITLE));
         mDescription.setText(baseCursor.getString(INDEX_MOVIE_DETAIL_OVERVIEW));
         String fullDate = baseCursor.getString(INDEX_MOVIE_DETAIL_RELEASE_DATE);
@@ -126,21 +190,16 @@ public class DetailActivity extends AppCompatActivity implements
 
         String posterUrl = NetworkUtils.getPosterUrl(getString(R.string.tmbd_api_key),
                 baseCursor.getString(INDEX_MOVIE_DETAIL_POSTER_PATH));
-        loadImageSetPalette(mPoster, mTitle, posterUrl);
-
-
-        if (null != detailCursor && detailCursor.getCount() > 0) {
-            populateDetails(detailCursor);
-        }
+        loadImageSetPalette(mPoster, mTitle, getWindow(), posterUrl);
     }
 
     private void populateDetails(Cursor detailCursor) {
-        // TODO: Stop the loading animation (if running)
         mRuntime.setText(getString(R.string.runtime_units,
                 detailCursor.getString(INDEX_MOVIE_DETAIL_RUNTIME)));
+        showContent();
     }
 
-    private void loadImageSetPalette(final ImageView imageView, final TextView paletteView, String url) {
+    private void loadImageSetPalette(final ImageView imageView, final TextView titleTextView, final Window window, String url) {
         Picasso.with(this).load(url).into(new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -148,16 +207,20 @@ public class DetailActivity extends AppCompatActivity implements
                 Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
                     @Override
                     public void onGenerated(@NonNull Palette palette) {
-                        paletteView.setBackgroundColor(palette.getDarkVibrantColor(
-                                ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark)));
+                        Palette.Swatch swatch = palette.getMutedSwatch();
+                        if (null != swatch) {
+                            titleTextView.setBackgroundColor(swatch.getRgb());
+                            titleTextView.setTextColor(swatch.getBodyTextColor());
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                window.setStatusBarColor(swatch.getRgb());
+                            }
+                        }
                     }
                 });
             }
 
             @Override
             public void onBitmapFailed(Drawable errorDrawable) {
-                paletteView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),
-                        R.color.colorPrimaryDark));
             }
 
             @Override
@@ -188,6 +251,7 @@ public class DetailActivity extends AppCompatActivity implements
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         // Once the details have loaded, populate those fields in the UI
         if( data != null && data.moveToFirst() ) {
+            Log.d("onLoadFinished", "Loading Details");
             populateDetails(data);
         }
     }

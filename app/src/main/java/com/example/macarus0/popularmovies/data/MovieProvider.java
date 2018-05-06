@@ -100,6 +100,8 @@ public class MovieProvider extends ContentProvider {
                     }
                     else {
                         db.setTransactionSuccessful();
+                        getContext().getContentResolver().notifyChange(uri, null );
+
                     }
                 } finally
                 {

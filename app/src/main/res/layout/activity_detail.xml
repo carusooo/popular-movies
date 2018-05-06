@@ -1,74 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".DetailActivity"
-    >
+    tools:context=".DetailActivity">
 
     <TextView
         android:id="@+id/detail_title"
         style="@style/DetailTitle"
         app:autoSizeTextType="uniform"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Office Space" />
 
-    <android.support.v4.widget.NestedScrollView
+    <FrameLayout
+        android:id="@+id/detail_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <LinearLayout
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/detail_content"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/poster_imageview"
+                style="@style/DetailPoster"
+                android:contentDescription="@null"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/detail_content" />
+            <!-- No contentDescription needed for the poster image -->
 
-                <ImageView
-                    android:id="@+id/poster_imageview"
-                    style="@style/DetailPoster"
-                    android:layout_weight=".5"
-                    android:contentDescription="@null"
-                    />
-                <!-- No contentDescription needed for the poster image -->
+            <TextView
+                android:id="@+id/year_textview"
+                style="@style/DetailYear"
+                android:gravity="center_vertical"
+                app:layout_constraintBottom_toTopOf="@id/runtime_textview"
+                app:layout_constraintStart_toEndOf="@id/poster_imageview"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="1998" />
 
+            <TextView
+                android:id="@+id/runtime_textview"
+                style="@style/DetailRuntime"
+                android:gravity="center_vertical"
+                app:layout_constraintBottom_toTopOf="@id/year_textview"
+                app:layout_constraintStart_toEndOf="@id/poster_imageview"
+                app:layout_constraintTop_toBottomOf="@id/year_textview"
+                tools:text="108min" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".5"
-                    android:baselineAligned="false"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/year_textview"
-                        style="@style/DetailYear"
-                        android:gravity="center_vertical"
-                        tools:text="1998" />
-
-                    <TextView
-                        android:id="@+id/runtime_textview"
-                        style="@style/DetailRuntime"
-                        android:gravity="center_vertical"
-                        tools:text="108min" />
-
-                    <TextView
-                        android:id="@+id/rating_textview"
-                        style="@style/DetailRating"
-                        android:gravity="center_vertical"
-                        tools:text="10/10" />
-                </LinearLayout>
-            </LinearLayout>
+            <TextView
+                android:id="@+id/rating_textview"
+                style="@style/DetailRating"
+                android:gravity="center_vertical"
+                app:layout_constraintBottom_toTopOf="@id/description_textview"
+                app:layout_constraintStart_toEndOf="@id/poster_imageview"
+                app:layout_constraintTop_toBottomOf="@id/runtime_textview"
+                tools:text="10/10" />
 
             <TextView
                 android:id="@+id/description_textview"
                 style="@style/DetailDescription"
+                app:layout_constraintTop_toBottomOf="@id/poster_imageview"
                 tools:text="@tools:sample/lorem/random" />
-        </LinearLayout>
-    </android.support.v4.widget.NestedScrollView>
+        </android.support.constraint.ConstraintLayout>
 
-</android.support.v7.widget.LinearLayoutCompat>
+        <com.github.ybq.android.spinkit.SpinKitView
+            android:id="@+id/spinKitView"
+            style="@style/DetailLoadingIndicator"
+            app:SpinKit_Color="@android:color/darker_gray" />
+
+        <include
+            android:id="@+id/offline_error_details"
+            style="@style/OfflineError"
+            layout="@layout/error_offline_view" />
+    </FrameLayout>
+
+</LinearLayout>

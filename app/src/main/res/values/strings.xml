@@ -6,4 +6,8 @@
         <item>Popular</item>
         <item>Top Rated</item>
     </string-array>
+    <string name="error_offline_title">Device is offline</string>
+    <string name="error_offline_main_text">Unable to retrieve movies, your device is offline.</string>
+    <string name="error_offline_details_text">Unable to retrieve movie details, your device is offline.</string>
+    <string name="error_offline_button_label">Retry</string>
 </resources>

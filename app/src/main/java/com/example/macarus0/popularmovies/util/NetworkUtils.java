@@ -1,5 +1,10 @@
 package com.example.macarus0.popularmovies.util;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,4 +52,19 @@ public class NetworkUtils {
         return stringBuilder.toString();
     }
 
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected() ||
+                (networkInfo.getType() != ConnectivityManager.TYPE_WIFI
+                        && networkInfo.getType() != ConnectivityManager.TYPE_MOBILE)) {
+            // If no connectivity, return false
+            Log.d("NetworkUtils", "No Connection");
+            return false;
+        } else {
+            return  true;
+        }
+    }
 }

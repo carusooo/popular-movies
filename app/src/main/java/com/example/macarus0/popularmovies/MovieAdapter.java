@@ -52,13 +52,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
                 .into(holder.posterImageView);
     }
 
+
+
     public interface MovieAdapterOnClickHandler {
-        void onClick(long id);
+        void onClick(long id, int position);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final ImageView posterImageView;
-        public long mMovieId;
 
         ViewHolder(View v) {
             super(v);
@@ -72,7 +73,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
             long moviePosterId = mCursor.getLong(MainActivity.INDEX_POSTER_GRID_MOVIE_ID);
-            mOnClickHandler.onClick(moviePosterId);
+            mOnClickHandler.onClick(moviePosterId, adapterPosition);
         }
 
     }

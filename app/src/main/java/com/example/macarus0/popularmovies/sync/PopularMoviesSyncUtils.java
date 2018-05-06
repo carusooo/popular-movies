@@ -1,13 +1,12 @@
 package com.example.macarus0.popularmovies.sync;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.example.macarus0.popularmovies.DetailActivity;
 import com.example.macarus0.popularmovies.data.MovieContract;
 
 import java.util.concurrent.TimeUnit;
@@ -47,10 +46,9 @@ public class PopularMoviesSyncUtils {
                         null
                 );
 
-              //  if (null == cursor || cursor.getCount() == 0) {
-                    Log.d(TAG, "Kicking off immediate sync");
-                    startImmediateSync(context, null);
-                //}
+                if (null == cursor || cursor.getCount() == 0) {
+                    syncMovieData(context, null);
+                }
                 cursor.close();
 
             }
@@ -63,10 +61,42 @@ public class PopularMoviesSyncUtils {
     /*
      * Helper method to start a sync immediately
      */
-    private static void startImmediateSync(@NonNull final Context context, String movieId) {
-        Intent immediateSyncIntent = new Intent(context, PopularMoviesSyncIntentService.class);
-        immediateSyncIntent.putExtra(DetailActivity.EXTRA_DETAIL_MOVIE_ID, movieId);
-        context.startService(immediateSyncIntent);
+    public static void syncMovieData(@NonNull final Context context, String movieId) {
+        Log.d(TAG, "Kicking off sync");
+        SyncTask syncTask = new SyncTask(context, movieId);
+        syncTask.execute();
+    }
+
+
+    private static class SyncTask extends AsyncTask<Void, Void, Void>
+    {
+        // Since this is static, keep a reference to the service that started the task
+        private Context mContext;
+        private String mMovieId;
+
+        SyncTask(Context context, String movieId ) {
+            mContext = context;
+            mMovieId = movieId;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if(!isCancelled()) {
+                PopularMoviesSyncTask.syncMovies(mContext, mMovieId);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            mContext = null;
+        }
     }
 
 
