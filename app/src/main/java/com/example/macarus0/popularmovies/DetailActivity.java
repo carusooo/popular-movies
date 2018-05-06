@@ -190,16 +190,18 @@ public class DetailActivity extends AppCompatActivity implements
 
         String posterUrl = NetworkUtils.getPosterUrl(getString(R.string.tmbd_api_key),
                 baseCursor.getString(INDEX_MOVIE_DETAIL_POSTER_PATH));
-        loadImageSetPalette(mPoster, mTitle, getWindow(), posterUrl);
+        TextView[] textViews = {mTitle, mRuntime, mRating, mYear};
+        loadImageSetPalette(mPoster, textViews, getWindow(), posterUrl);
     }
 
     private void populateDetails(Cursor detailCursor) {
+
         mRuntime.setText(getString(R.string.runtime_units,
                 detailCursor.getString(INDEX_MOVIE_DETAIL_RUNTIME)));
         showContent();
     }
 
-    private void loadImageSetPalette(final ImageView imageView, final TextView titleTextView, final Window window, String url) {
+    private void loadImageSetPalette(final ImageView imageView, final TextView[] textViews, final Window window, String url) {
         Picasso.with(this).load(url).into(new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -209,8 +211,10 @@ public class DetailActivity extends AppCompatActivity implements
                     public void onGenerated(@NonNull Palette palette) {
                         Palette.Swatch swatch = palette.getMutedSwatch();
                         if (null != swatch) {
-                            titleTextView.setBackgroundColor(swatch.getRgb());
-                            titleTextView.setTextColor(swatch.getBodyTextColor());
+                            for(TextView textView : textViews) {
+                                textView.setBackgroundColor(swatch.getRgb());
+                                textView.setTextColor(swatch.getBodyTextColor());
+                            }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                                 window.setStatusBarColor(swatch.getRgb());
                             }

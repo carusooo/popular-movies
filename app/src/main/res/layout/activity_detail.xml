@@ -25,40 +25,42 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/poster_imageview"
-                style="@style/DetailPoster"
-                android:contentDescription="@null"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/detail_content" />
-            <!-- No contentDescription needed for the poster image -->
-
             <TextView
                 android:id="@+id/year_textview"
                 style="@style/DetailYear"
                 android:gravity="center_vertical"
-                app:layout_constraintBottom_toTopOf="@id/runtime_textview"
-                app:layout_constraintStart_toEndOf="@id/poster_imageview"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/runtime_textview"
+                app:layout_constraintHorizontal_chainStyle="spread"
                 tools:text="1998" />
 
             <TextView
                 android:id="@+id/runtime_textview"
                 style="@style/DetailRuntime"
                 android:gravity="center_vertical"
-                app:layout_constraintBottom_toTopOf="@id/year_textview"
-                app:layout_constraintStart_toEndOf="@id/poster_imageview"
-                app:layout_constraintTop_toBottomOf="@id/year_textview"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/year_textview"
+                app:layout_constraintEnd_toStartOf="@id/rating_textview"
                 tools:text="108min" />
 
             <TextView
                 android:id="@+id/rating_textview"
                 style="@style/DetailRating"
                 android:gravity="center_vertical"
-                app:layout_constraintBottom_toTopOf="@id/description_textview"
-                app:layout_constraintStart_toEndOf="@id/poster_imageview"
-                app:layout_constraintTop_toBottomOf="@id/runtime_textview"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/runtime_textview"
+                app:layout_constraintEnd_toEndOf="parent"
                 tools:text="10/10" />
+
+
+            <ImageView
+                android:id="@+id/poster_imageview"
+                style="@style/DetailPoster"
+                android:contentDescription="@null"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/year_textview" />
+            <!-- No contentDescription needed for the poster image -->
 
             <TextView
                 android:id="@+id/description_textview"
