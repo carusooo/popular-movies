@@ -69,7 +69,7 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:textAlignment" tools:targetApi="jelly_bean_mr1">center</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:background">?attr/colorPrimaryDark</item>
+        <item name="android:theme">@style/ToolbarText</item>
         <item name="android:elevation" tools:targetApi="lollipop">2dp</item>
     </style>
 

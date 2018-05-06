@@ -107,12 +107,12 @@ public class MainActivity extends AppCompatActivity implements
             mPosition = savedInstanceState.getInt(SCROLL_POSITION);
         }
 
+        showLoading();
         fetchData();
 
     }
 
     private void fetchData() {
-        showLoading();
         if(NetworkUtils.isOnline(this)) {
             // Set up the CursorLoaderManager to detect changes in the data and update the views
             getSupportLoaderManager().initLoader(ID_POPULAR_MOVIE_LOADER, null, this);
@@ -244,6 +244,8 @@ public class MainActivity extends AppCompatActivity implements
             mSpinnerPosition = position;
             showLoading();
         } else {
+            // Since the reload didn't complete, set the spinner to the previous value
+            mSpinner.setSelection(mSpinnerPosition, false);
             showOffline();
         }
     }
