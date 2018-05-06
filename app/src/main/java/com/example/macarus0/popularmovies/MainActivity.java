@@ -229,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
         if(NetworkUtils.isOnline(this)) {
             switch (position) {
                 case 0:
@@ -240,6 +239,9 @@ public class MainActivity extends AppCompatActivity implements
                     // Top Rated was selected
                     getSupportLoaderManager().restartLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
                     break;
+            }
+            if(mSpinnerPosition != position) {
+                mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
             }
             mSpinnerPosition = position;
             showLoading();
