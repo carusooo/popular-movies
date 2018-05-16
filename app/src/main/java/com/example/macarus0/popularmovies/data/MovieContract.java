@@ -27,14 +27,6 @@ public class MovieContract {
                 appendPath(PATH_POPULAR_MOVIES)
                 .build();
 
-        public static final Uri DETAILS_URI = BASE_CONTENT_URI.buildUpon().
-                appendPath(PATH_MOVIE_DETAILS)
-                .build();
-
-        public static final Uri TOP_RATED_URI = BASE_CONTENT_URI.buildUpon().
-                appendPath(PATH_MOVIE_TOP_RATED)
-                .build();
-
         public static final String POPULAR_MOVIE_TABLE_NAME = "popular_movies";
 
         /* This is the ID given by TMDb */

@@ -9,25 +9,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public final class MovieJSONUtilities {
+public class MovieJSONUtilities {
 
     private static final String TMDB_ID = "id";
     private static final String TMDB_TITLE = "title";
-    private static final String TMDB_TAGLINE = "tagline";
     private static final String TMDB_OVERVIEW = "overview";
     private static final String TMDB_RELEASE_DATE = "release_date";
     private static final String TMDB_USER_RATING = "vote_average";
     private static final String TMDB_RUNTIME = "runtime";
     private static final String TMDB_POSTER_PATH = "poster_path";
     private static final String TMDB_POPULARITY = "popularity";
-    private static final String TMDB_BACKDROP_PATH = "backdrop_path";
 
     private static final String TMDB_RESULTS = "results";
+
+    public MovieJSONUtilities() {}
 
     /*
      * This method parses the JSON returned from tMDB for the listing of popular movies
      */
-    public static ContentValues[] parsePopularJSON(String jsonResponse) throws JSONException {
+    public ContentValues[] parsePopularJSON(String jsonResponse) throws JSONException {
 
         JSONObject popularJson = new JSONObject(jsonResponse);
         JSONArray popularJsonArray = popularJson.getJSONArray(TMDB_RESULTS);
@@ -51,7 +51,7 @@ public final class MovieJSONUtilities {
     }
 
 
-    public static ContentValues parseMovie(String movieJson) throws JSONException {
+    public ContentValues parseMovie(String movieJson) throws JSONException {
         ContentValues movieContentValues = new ContentValues();
 
         JSONObject movie = new JSONObject(movieJson);

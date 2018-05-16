@@ -2,13 +2,8 @@ package com.example.macarus0.popularmovies;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +17,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     final private MovieAdapterOnClickHandler mOnClickHandler;
     private final Context mContext;
     private Cursor mCursor;
+    private final NetworkUtils mNetworkUtils;
 
-    public MovieAdapter(Context context, MovieAdapterOnClickHandler onClickHandler) {
+    public MovieAdapter(Context context, MovieAdapterOnClickHandler onClickHandler,
+                        NetworkUtils networkUtils) {
         mContext = context;
         mOnClickHandler = onClickHandler;
+        mNetworkUtils = networkUtils;
     }
 
     public void swapCursor(Cursor newCursor) {
@@ -52,8 +50,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         mCursor.moveToPosition(position);
         String title = mCursor.getString(MainActivity.INDEX_POSTER_GRID_TITLE);
         holder.posterImageView.setContentDescription(title);
-        Picasso.with(mContext).load(NetworkUtils.getPosterUrl(
-                mContext.getString(R.string.tmbd_api_key),
+        Picasso.with(mContext).load(mNetworkUtils.getPosterUrl(
                 mCursor.getString(MainActivity.INDEX_POSTER_GRID_POSTER_PATH)))
                 .placeholder(R.drawable.placeholder)
                 .into(holder.posterImageView);

@@ -17,7 +17,6 @@ public class MovieProvider extends ContentProvider {
     private static final int CODE_MOVIES_POPULAR = 100;
     private static final int CODE_MOVIE_POPULAR = 101;
     private static final int CODE_MOVIE_DETAILS = 102;
-    public static final int CODE_MOVIE_TOP_RATED = 103;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
@@ -202,7 +201,6 @@ public class MovieProvider extends ContentProvider {
         // TODO: Implement this to handle requests to update one or more rows.
         throw new UnsupportedOperationException("Not yet implemented");
     }
-
 
     class MovieDbHelper extends SQLiteOpenHelper {
         static final String MOVIE_DB_NAME = "movies.db";

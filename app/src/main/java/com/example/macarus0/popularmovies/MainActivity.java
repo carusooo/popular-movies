@@ -99,7 +99,8 @@ public class MainActivity extends AppCompatActivity implements
         mLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
-        mMovieAdapter = new MovieAdapter(this, this);
+        mMovieAdapter = new MovieAdapter(this, this,
+                NetworkUtils.getInstance(getString(R.string.tmbd_api_key)));
         mRecyclerView.setAdapter(mMovieAdapter);
 
         if (savedInstanceState != null) {

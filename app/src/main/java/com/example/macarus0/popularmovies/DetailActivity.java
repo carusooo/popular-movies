@@ -34,6 +34,7 @@ import butterknife.ButterKnife;
 public class DetailActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
     private static final String[] POPULAR_MOVIE_DETAIL_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_POSTER_PATH,
@@ -42,26 +43,17 @@ public class DetailActivity extends AppCompatActivity implements
             MovieContract.MovieEntry.COLUMN_RELEASE_DATE,
             MovieContract.MovieEntry.COLUMN_USER_RATING,
     };
-
     private static final int INDEX_MOVIE_DETAIL_POSTER_PATH = 1;
     private static final int INDEX_MOVIE_DETAIL_TITLE = 2;
     private static final int INDEX_MOVIE_DETAIL_OVERVIEW = 3;
     private static final int INDEX_MOVIE_DETAIL_RELEASE_DATE = 4;
     private static final int INDEX_MOVIE_DETAIL_USER_RATING = 5;
-
     private static final String[] MOVIE_DETAIL_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_RUNTIME,
     };
-
     private static final int INDEX_MOVIE_DETAIL_RUNTIME = 1;
-
     private static final int ID_DETAIL_LOADER = 444;
-
-
-    public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
-    private String mMovieId;
-
     @BindView(R.id.poster_imageview)
     ImageView mPoster;
     @BindView(R.id.description_textview)
@@ -88,6 +80,8 @@ public class DetailActivity extends AppCompatActivity implements
     ImageView mOfflineErrorIcon;
     @BindView(R.id.offline_error_retry_button)
     Button mOfflineErrorRetryButton;
+    private String mMovieId;
+    private NetworkUtils mNetworkUtils;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,7 +93,7 @@ public class DetailActivity extends AppCompatActivity implements
         Intent intent = getIntent();
         mMovieId = intent.getStringExtra(EXTRA_DETAIL_MOVIE_ID);
 
-
+        mNetworkUtils = NetworkUtils.getInstance(getString(R.string.tmbd_api_key));
         showLoading();
 
         Cursor baseCursor = getContentResolver().query(
@@ -131,7 +125,7 @@ public class DetailActivity extends AppCompatActivity implements
     }
 
     private void fetchDetails() {
-        if(NetworkUtils.isOnline(this)) {
+        if (NetworkUtils.isOnline(this)) {
             // Set up a Loader to alert when the fetch is complete
             getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, this);
             // Kick off the request
@@ -182,7 +176,7 @@ public class DetailActivity extends AppCompatActivity implements
 
         mRating.setText(getString(R.string.rating_suffix, baseCursor.getString(INDEX_MOVIE_DETAIL_USER_RATING)));
 
-        String posterUrl = NetworkUtils.getPosterUrl(getString(R.string.tmbd_api_key),
+        String posterUrl = mNetworkUtils.getPosterUrl(
                 baseCursor.getString(INDEX_MOVIE_DETAIL_POSTER_PATH));
         TextView[] textViews = {mTitle, mRuntime, mRating, mYear};
         loadImageSetPalette(mPoster, textViews, getWindow(), posterUrl);
@@ -205,7 +199,7 @@ public class DetailActivity extends AppCompatActivity implements
                     public void onGenerated(@NonNull Palette palette) {
                         Palette.Swatch swatch = palette.getMutedSwatch();
                         if (null != swatch) {
-                            for(TextView textView : textViews) {
+                            for (TextView textView : textViews) {
                                 textView.setBackgroundColor(swatch.getRgb());
                                 textView.setTextColor(swatch.getBodyTextColor());
                             }
@@ -248,7 +242,7 @@ public class DetailActivity extends AppCompatActivity implements
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         // Once the details have loaded, populate those fields in the UI
-        if( data != null && data.moveToFirst() ) {
+        if (data != null && data.moveToFirst()) {
             Log.d("onLoadFinished", "Loading Details");
             populateDetails(data);
         }

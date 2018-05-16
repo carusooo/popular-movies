@@ -14,30 +14,45 @@ import java.net.URL;
 
 public class NetworkUtils {
 
-    public static String getPopularMoviesUrl(String key) {
-        return String.format("https://api.themoviedb.org/3/movie/popular?api_key=%s", key);
+    private final String mApiKey;
+
+    private static NetworkUtils sNetworkUtils;
+
+    public static NetworkUtils getInstance(String apiKey) {
+        if(sNetworkUtils == null) {
+            sNetworkUtils = new NetworkUtils(apiKey);
+        }
+        return sNetworkUtils;
     }
 
-    public static String getTopRatedMoviesUrl(String key) {
-        return String.format("https://api.themoviedb.org/3/movie/top_rated?api_key=%s", key);
+    private NetworkUtils(String apiKey) {
+        mApiKey = apiKey;
     }
 
-    public static String getMoviesUrl(String key, String movieId) {
-        return String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", movieId, key);
+    public  String getPopularMoviesUrl() {
+        return String.format("https://api.themoviedb.org/3/movie/popular?api_key=%s", mApiKey);
     }
 
-    public static String getPosterUrl(String key, String movieId) {
-         return String.format("https://image.tmdb.org/t/p/w185/%s?api_key=%s", movieId, key);
+    public  String getTopRatedMoviesUrl() {
+        return String.format("https://api.themoviedb.org/3/movie/top_rated?api_key=%s", mApiKey);
+    }
+
+    public  String getMoviesUrl(String movieId) {
+        return String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", movieId, mApiKey);
+    }
+
+    public  String getPosterUrl(String movieId) {
+         return String.format("https://image.tmdb.org/t/p/w185/%s?api_key=%s", movieId, mApiKey);
     }
 
 
-    public static String getStringFromUrl(String urlString) throws IOException {
+    public String getStringFromUrl(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         return streamToString(httpURLConnection.getInputStream());
     }
 
-    private static String streamToString(InputStream inputStream) throws IOException {
+    private String streamToString(InputStream inputStream) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
         StringBuilder stringBuilder = new StringBuilder(inputStream.available());
         String line;

@@ -1,5 +1,6 @@
 package com.example.macarus0.popularmovies.sync;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -7,22 +8,21 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.macarus0.popularmovies.R;
 import com.example.macarus0.popularmovies.data.MovieContract;
-
-import java.lang.ref.WeakReference;
-import java.util.concurrent.TimeUnit;
+import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
+import com.example.macarus0.popularmovies.util.NetworkUtils;
 
 public class PopularMoviesSyncUtils {
 
     private static final String TAG = PopularMoviesSyncUtils.class.getName();
-    private static boolean sInitialized;
 
 
     synchronized public static void initialize(@NonNull final Context context) {
         /**
          *  Checks if the database of popular movies needs to be reloaded or not
          * and start an ASyncTask to populate the ContentProvider
-         */
+         **/
 
         Log.d(TAG, "initializing");
 
@@ -54,9 +54,7 @@ public class PopularMoviesSyncUtils {
 
             }
         });
-
         checkForContent.start();
-        sInitialized = true;
     }
 
     /**
@@ -64,26 +62,36 @@ public class PopularMoviesSyncUtils {
      */
     public static void syncMovieData(@NonNull final Context context, String movieId) {
         Log.d(TAG, "Kicking off sync");
-        SyncTask syncTask = new SyncTask(context, movieId);
-        syncTask.execute();
+        PopularMoviesASyncTask popularMoviesASyncTask = new PopularMoviesASyncTask(context.getContentResolver(),
+                NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key)),
+                new MovieJSONUtilities(),
+                movieId);
+        popularMoviesASyncTask.execute();
     }
 
 
-    private static class SyncTask extends AsyncTask<Void, Void, Void>
+    private static class PopularMoviesASyncTask extends AsyncTask<Void, Void, Void>
     {
-        // Since this is static, keep a reference to the service that started the task
-        private WeakReference<Context> mContext;
+
+        private final ContentResolver mContentResolver;
+        private final NetworkUtils mNetworkUtils;
+        private final MovieJSONUtilities mMovieJSONUtilities;
         private final String mMovieId;
 
-        SyncTask(Context context, String movieId ) {
-            mContext = new WeakReference<>(context);
+
+        PopularMoviesASyncTask(ContentResolver contentResolver, NetworkUtils networkUtils,
+                               MovieJSONUtilities movieJSONUtilities, String movieId) {
+            mContentResolver = contentResolver;
+            mNetworkUtils = networkUtils;
+            mMovieJSONUtilities = movieJSONUtilities;
             mMovieId = movieId;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             if(!isCancelled()) {
-                PopularMoviesSyncTask.syncMovies(mContext, mMovieId);
+                PopularMoviesSyncTask.syncMovies(mContentResolver, mNetworkUtils,
+                        mMovieJSONUtilities, mMovieId);
             }
             return null;
         }
@@ -91,12 +99,6 @@ public class PopularMoviesSyncUtils {
         @Override
         protected void onPreExecute() {
 
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-            mContext = null;
         }
     }
 
