@@ -37,19 +37,26 @@ public class NetworkUtils {
         return String.format("https://api.themoviedb.org/3/movie/top_rated?api_key=%s", mApiKey);
     }
 
-    public  String getMoviesUrl(String movieId) {
+    public  String getMovieDetailsUrl(String movieId) {
         return String.format("https://api.themoviedb.org/3/movie/%s?api_key=%s", movieId, mApiKey);
     }
 
-    public  String getPosterUrl(String movieId) {
+    public String getMovieReviewsUrl(String movieId) {
+        return String.format("https://api.themoviedb.org/3/movie/%s/reviews?api_key=%s", movieId, mApiKey);
+
+    }
+        public  String getPosterUrl(String movieId) {
          return String.format("https://image.tmdb.org/t/p/w185/%s?api_key=%s", movieId, mApiKey);
     }
 
 
     public String getStringFromUrl(String urlString) throws IOException {
+        String response;
         URL url = new URL(urlString);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        return streamToString(httpURLConnection.getInputStream());
+        response = streamToString(httpURLConnection.getInputStream());
+        httpURLConnection.disconnect();
+        return response;
     }
 
     private String streamToString(InputStream inputStream) throws IOException {

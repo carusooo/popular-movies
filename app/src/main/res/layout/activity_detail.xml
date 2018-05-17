@@ -69,6 +69,13 @@
                 style="@style/DetailDescription"
                 app:layout_constraintTop_toBottomOf="@id/poster_imageview"
                 tools:text="@tools:sample/lorem/random" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/review_rv"
+                app:layout_constraintTop_toBottomOf="@id/description_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
         </android.support.constraint.ConstraintLayout>
 
         <com.github.ybq.android.spinkit.SpinKitView

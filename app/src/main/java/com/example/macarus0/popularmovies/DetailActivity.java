@@ -14,6 +14,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -53,7 +54,17 @@ public class DetailActivity extends AppCompatActivity implements
             MovieContract.MovieEntry.COLUMN_RUNTIME,
     };
     private static final int INDEX_MOVIE_DETAIL_RUNTIME = 1;
+
+    private static final String[] MOVIE_REVIEW_PROJECTION = {
+            MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR,
+            MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT,
+    };
+    public static final int INDEX_REVIEW_AUTHOR = 0;
+    public static final int INDEX_REVIEW_CONTENT = 1;
+
     private static final int ID_DETAIL_LOADER = 444;
+    private static final int ID_REVIEW_LOADER = 445;
+
     @BindView(R.id.poster_imageview)
     ImageView mPoster;
     @BindView(R.id.description_textview)
@@ -68,6 +79,8 @@ public class DetailActivity extends AppCompatActivity implements
     TextView mTitle;
     @BindView(R.id.detail_content)
     ConstraintLayout mContent;
+    @BindView(R.id.review_rv)
+    RecyclerView mReviews;
     @BindView(R.id.spinKitView)
     ProgressBar mProgressBar;
     @BindView(R.id.offline_error_details)
@@ -106,6 +119,14 @@ public class DetailActivity extends AppCompatActivity implements
         baseCursor.moveToFirst();
         populateUI(baseCursor);
 
+
+        /**
+         *  TODO
+         *  TODO  Create the layout manager and attach to the recyclerView
+         *  TODO  Wire up the Sync task to fetch reviews
+         *  TODO
+         **/
+
         // Check if the movie details are available
         Cursor detailCursor = getContentResolver().query(
                 MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
@@ -114,6 +135,16 @@ public class DetailActivity extends AppCompatActivity implements
                 null,
                 null
         );
+
+        // Check if the movie details are available
+        Cursor reviewCursor = getContentResolver().query(
+                MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
+                MOVIE_REVIEW_PROJECTION,
+                null,
+                null,
+                null
+        );
+        reviewCursor.close();
 
         // If the details are not available, send a request to fetch them
         if (null == detailCursor || detailCursor.getCount() == 0) {
@@ -129,7 +160,7 @@ public class DetailActivity extends AppCompatActivity implements
             // Set up a Loader to alert when the fetch is complete
             getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, this);
             // Kick off the request
-            PopularMoviesSyncUtils.syncMovieData(this, mMovieId);
+            PopularMoviesSyncUtils.syncMovieDetails(this, mMovieId);
         } else {
             showOffline();
         }
@@ -230,6 +261,14 @@ public class DetailActivity extends AppCompatActivity implements
                 return new CursorLoader(this,
                         MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
                         MOVIE_DETAIL_PROJECTION,
+                        null,
+                        null,
+                        null);
+
+            case ID_REVIEW_LOADER:
+                return new CursorLoader(this,
+                        MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
+                        MOVIE_REVIEW_PROJECTION,
                         null,
                         null,
                         null);

@@ -19,7 +19,8 @@ public class MovieContract {
 
     public static final String PATH_MOVIE_DETAILS = "details";
 
-    private static final String PATH_MOVIE_TOP_RATED = "top_rated";
+    public static final String PATH_MOVIE_REVIEWS = "reviews";
+
 
     public static final class MovieEntry implements BaseColumns {
 
@@ -63,6 +64,20 @@ public class MovieContract {
         /* The Runtime of the movie */
         public static final String COLUMN_RUNTIME = "runtime";
 
+        /*
+         * Table for the reviews of a movie
+         */
+        public static final String MOVIE_REVIEW_TABLE_NAME = "reviews";
+
+        /* The content of the review */
+        public static final String COLUMN_REVIEW_CONTENT = "content";
+
+        /* The author of the review */
+        public static final String COLUMN_REVIEW_AUTHOR = "author";
+
+        /* The URL of the review */
+        public static final String MOVIE_REVIEW_URL = "url";
+
 
         /* Get the Uri for a specific movie */
         public static Uri getMovieUri(String movieId) {
@@ -80,6 +95,14 @@ public class MovieContract {
                     appendPath(movieId)
                     .build();
 
+        }
+
+        /* Get the Uri for a movie's reviews */
+        public static Uri getMovieReviewsUri(String movieId) {
+            return BASE_CONTENT_URI.buildUpon().
+                    appendPath(PATH_MOVIE_REVIEWS).
+                    appendPath(movieId)
+                    .build();
         }
 
         /* Get the selection statement for today's popular movies */

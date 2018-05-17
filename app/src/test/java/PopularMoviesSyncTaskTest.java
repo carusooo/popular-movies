@@ -32,7 +32,7 @@ public class PopularMoviesSyncTaskTest {
         verify(mockNetworkUtils, times(1)).getPopularMoviesUrl();
         verify(mockNetworkUtils, times(1)).getTopRatedMoviesUrl();
 
-        verify(mockNetworkUtils, never()).getMoviesUrl(anyString());
+        verify(mockNetworkUtils, never()).getMovieDetailsUrl(anyString());
 
 
     }
@@ -43,7 +43,7 @@ public class PopularMoviesSyncTaskTest {
         PopularMoviesSyncTask.syncMovies(mockContentResolver, mockNetworkUtils,
                 mockJsonUtilities, movieID);
 
-        verify(mockNetworkUtils, times(1)).getMoviesUrl(movieID);
+        verify(mockNetworkUtils, times(1)).getMovieDetailsUrl(movieID);
 
         verify(mockNetworkUtils, never()).getPopularMoviesUrl();
         verify(mockNetworkUtils, never()).getTopRatedMoviesUrl();

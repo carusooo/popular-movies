@@ -1,6 +1,7 @@
 package com.example.macarus0.popularmovies.sync;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -46,7 +47,7 @@ public class PopularMoviesSyncUtils {
                 );
 
                 if (null == cursor || cursor.getCount() == 0) {
-                    syncMovieData(context, null);
+                    syncPopularMovies(context);
                 }
                 if (null != cursor) {
                     cursor.close();
@@ -57,17 +58,91 @@ public class PopularMoviesSyncUtils {
         checkForContent.start();
     }
 
-    /**
-     * Helper method to start a sync immediately
+    /*
+     * Start a sync for popular movies
      */
-    public static void syncMovieData(@NonNull final Context context, String movieId) {
+    private static void syncPopularMovies(@NonNull final Context context) {
         Log.d(TAG, "Kicking off sync");
-        PopularMoviesASyncTask popularMoviesASyncTask = new PopularMoviesASyncTask(context.getContentResolver(),
-                NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key)),
-                new MovieJSONUtilities(),
-                movieId);
+        MovieJSONUtilities.JSONParser jsonParser = new MovieJSONUtilities.JSONParser() {
+            @Override
+            public ContentValues[] parserFunction(String jsonString) {
+
+                return new MovieJSONUtilities().parsePopularJSON(jsonString);
+            }
+        };
+        NetworkUtils networkUtils = NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key));
+
+        String[] urls = new String[]{
+                networkUtils.getPopularMoviesUrl(),
+                networkUtils.getTopRatedMoviesUrl()
+        };
+
+        PopularMoviesASyncTask popularMoviesASyncTask = new PopularMoviesASyncTask(
+                context.getContentResolver(),
+                networkUtils,
+                jsonParser,
+                MovieContract.MovieEntry.POPULAR_URI,
+                urls
+                );
         popularMoviesASyncTask.execute();
     }
+
+    /*
+     * Start a sync for movie details
+     */
+    public static void syncMovieDetails(@NonNull final Context context, String movieId ) {
+        Log.d(TAG, "Kicking off sync");
+        MovieJSONUtilities.JSONParser jsonParser = new MovieJSONUtilities.JSONParser() {
+            @Override
+            public ContentValues[] parserFunction(String jsonString) {
+
+                return new MovieJSONUtilities().parseMovie(jsonString);
+            }
+        };
+        NetworkUtils networkUtils = NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key));
+
+        String[] urls = new String[]{
+                networkUtils.getMovieDetailsUrl(movieId)
+        };
+
+        PopularMoviesASyncTask popularMoviesASyncTask = new PopularMoviesASyncTask(
+                context.getContentResolver(),
+                networkUtils,
+                jsonParser,
+                MovieContract.MovieEntry.getMovieDetailsUri(movieId),
+                urls
+        );
+        popularMoviesASyncTask.execute();
+    }
+
+    /*
+     * Start a sync for movie reviews
+     */
+    public static void syncMovieReview(@NonNull final Context context, String movieId ) {
+        Log.d(TAG, "Kicking off sync");
+        MovieJSONUtilities.JSONParser jsonParser = new MovieJSONUtilities.JSONParser() {
+            @Override
+            public ContentValues[] parserFunction(String jsonString) {
+
+                return new MovieJSONUtilities().parseReviews(jsonString);
+            }
+        };
+        NetworkUtils networkUtils = NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key));
+
+        String[] urls = new String[]{
+                networkUtils.getMovieReviewsUrl(movieId)
+        };
+
+        PopularMoviesASyncTask popularMoviesASyncTask = new PopularMoviesASyncTask(
+                context.getContentResolver(),
+                networkUtils,
+                jsonParser,
+                MovieContract.MovieEntry.getMovieReviewsUri(movieId),
+                urls
+        );
+        popularMoviesASyncTask.execute();
+    }
+
 
 
     private static class PopularMoviesASyncTask extends AsyncTask<Void, Void, Void>
@@ -75,23 +150,25 @@ public class PopularMoviesSyncUtils {
 
         private final ContentResolver mContentResolver;
         private final NetworkUtils mNetworkUtils;
-        private final MovieJSONUtilities mMovieJSONUtilities;
-        private final String mMovieId;
+        private final MovieJSONUtilities.JSONParser mJsonParser;
+        private final Uri mContentUri;
+        private final String[] mUrls;
 
 
         PopularMoviesASyncTask(ContentResolver contentResolver, NetworkUtils networkUtils,
-                               MovieJSONUtilities movieJSONUtilities, String movieId) {
+                               MovieJSONUtilities.JSONParser jsonParser, Uri contentUri, String[] urls) {
             mContentResolver = contentResolver;
             mNetworkUtils = networkUtils;
-            mMovieJSONUtilities = movieJSONUtilities;
-            mMovieId = movieId;
+            mJsonParser = jsonParser;
+            mContentUri = contentUri;
+            mUrls = urls;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             if(!isCancelled()) {
-                PopularMoviesSyncTask.syncMovies(mContentResolver, mNetworkUtils,
-                        mMovieJSONUtilities, mMovieId);
+                PopularMoviesSyncTask.syncMovies(mContentResolver, mNetworkUtils, mJsonParser,
+                        mContentUri, mUrls);
             }
             return null;
         }

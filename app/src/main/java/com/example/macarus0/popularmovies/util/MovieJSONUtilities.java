@@ -8,7 +8,8 @@ import com.google.gson.Gson;
 
 public class MovieJSONUtilities {
 
-    public MovieJSONUtilities() {}
+    public MovieJSONUtilities() {
+    }
 
     /*
      * This method parses the JSON returned from tMDB for the listing of popular movies
@@ -18,19 +19,33 @@ public class MovieJSONUtilities {
         PopularMoviePage popularMoviePage = gson.fromJson(jsonResponse, PopularMoviePage.class);
 
         ContentValues[] popularContentValues = new ContentValues[popularMoviePage.results.length];
-        Log.d("parsePopularJSON", String.format("Parsing %d popular movies",popularMoviePage.results.length));
+        Log.d("parsePopularJSON", String.format("Parsing %d popular movies", popularMoviePage.results.length));
         for (int i = 0; i < popularMoviePage.results.length; i++) {
             popularContentValues[i] = popularMoviePage.results[i].toContentValues();
         }
         return popularContentValues;
     }
 
-
-    public ContentValues parseMovie(String movieJson) {
+    public ContentValues[] parseMovie(String movieJson) {
         Gson gson = new Gson();
         MovieDetails movieDetails = gson.fromJson(movieJson, MovieDetails.class);
         ContentValues movieContentValues = movieDetails.toContentValues();
-        return movieContentValues;
+        return new ContentValues[]{movieContentValues};
+    }
+
+    public ContentValues[] parseReviews(String movieJson) {
+        Gson gson = new Gson();
+        MovieReviewPage movieReviews = gson.fromJson(movieJson, MovieReviewPage.class);
+        ContentValues[] reviewContentValues = new ContentValues[movieReviews.results.length];
+        Log.d("parseReviews", String.format("Parsing %d movie reviews", movieReviews.results.length));
+        for (int i = 0; i < movieReviews.results.length; i++) {
+            reviewContentValues[i] = movieReviews.results[i].toContentValues();
+        }
+        return reviewContentValues;
+    }
+
+    public interface JSONParser {
+        ContentValues[] parserFunction(String jsonString);
     }
 
     class PopularMoviePage {
@@ -46,7 +61,7 @@ public class MovieJSONUtilities {
         String poster_path;
         String popularity;
 
-        public ContentValues toContentValues() {
+        ContentValues toContentValues() {
             ContentValues contentValues = new ContentValues();
             contentValues.put(MovieContract.MovieEntry.COLUMN_ID, this.id);
             contentValues.put(MovieContract.MovieEntry.COLUMN_TITLE, this.title);
@@ -64,11 +79,32 @@ public class MovieJSONUtilities {
         int id;
         String runtime;
 
-        public ContentValues toContentValues() {
+        ContentValues toContentValues() {
             ContentValues contentValues = new ContentValues();
             contentValues.put(MovieContract.MovieEntry.COLUMN_ID, this.id);
             contentValues.put(MovieContract.MovieEntry.COLUMN_RUNTIME, this.runtime);
             return contentValues;
+        }
+    }
+
+    class MovieReviewPage {
+        MovieReview[] results;
+    }
+
+    class MovieReview {
+        int id;
+        String author;
+        String content;
+        String url;
+
+        ContentValues toContentValues() {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MovieContract.MovieEntry.COLUMN_ID, this.id);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR, this.author);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT, this.content);
+            contentValues.put(MovieContract.MovieEntry.MOVIE_REVIEW_URL, this.url);
+            return contentValues;
+
         }
     }
 

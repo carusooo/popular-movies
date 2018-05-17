@@ -1,7 +1,6 @@
 package com.example.macarus0.popularmovies.data;
 
 import android.content.ContentProvider;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -17,6 +16,7 @@ public class MovieProvider extends ContentProvider {
     private static final int CODE_MOVIES_POPULAR = 100;
     private static final int CODE_MOVIE_POPULAR = 101;
     private static final int CODE_MOVIE_DETAILS = 102;
+    private static final int CODE_MOVIE_REVIEWS = 103;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
@@ -39,6 +39,12 @@ public class MovieProvider extends ContentProvider {
          */
         matcher.addURI(authority, MovieContract.PATH_MOVIE_DETAILS + "/#", CODE_MOVIE_DETAILS);
         Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_DETAILS + "/#"));
+
+        /* This URI is content://com.example.macarus0.popularmovies/reviews/#### where #### is the
+         *  ID of a movie.
+         */
+        matcher.addURI(authority, MovieContract.PATH_MOVIE_REVIEWS + "/#", CODE_MOVIE_REVIEWS);
+        Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_REVIEWS + "/#"));
 
         return matcher;
 
@@ -85,62 +91,59 @@ public class MovieProvider extends ContentProvider {
     public Uri insert(@NonNull Uri uri, ContentValues values) {
         Log.d("insert", String.format("Attempting insert %s to %s %s",
                 values.get(MovieContract.MovieEntry.COLUMN_ID), uri.toString(), values.toString()));
-        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        long id;
-        switch (sUriMatcher.match(uri)) {
-            case CODE_MOVIE_DETAILS:
-                db.beginTransaction();
-                try {
-                    id = db.insertWithOnConflict(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME,
-                            null,
-                            values, SQLiteDatabase.CONFLICT_REPLACE);
-                    if(id == -1) {
-                        Log.d("insert", "Failed to insert ");
-                    }
-                    else {
-                        db.setTransactionSuccessful();
-                        getContext().getContentResolver().notifyChange(uri, null );
-
-                    }
-                } finally
-                {
-                    db.endTransaction();
-                }
-                return ContentUris.withAppendedId(uri, id);
-        }
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int rowsInserted = 0;
+        String tableName;
         switch (sUriMatcher.match(uri)) {
+
             case CODE_MOVIES_POPULAR:
                 Log.d("bulkInsert", String.format("Attempting bulkInsert %d PopularMovies to %s",
                         values.length, uri.toString()));
-                db.beginTransaction();
-                int rowsInserted = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long _id = db.insertWithOnConflict(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME, null,
-                                value, SQLiteDatabase.CONFLICT_REPLACE);
-                        if (_id != -1) {
-                            rowsInserted++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
-                if (rowsInserted > 0) {
-                    Log.d("bulkInsert", String.format("Inserted %d rows", rowsInserted));
-                    getContext().getContentResolver().notifyChange(uri, null);
-                }
-                return rowsInserted;
+                tableName = MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME;
+                break;
+
+            case CODE_MOVIE_DETAILS:
+                Log.d("bulkInsert", String.format("Attempting bulkInsert %d MovieDetails to %s",
+                        values.length, uri.toString()));
+                tableName = MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME;
+                break;
+
+            case CODE_MOVIE_REVIEWS:
+                Log.d("bulkInsert", String.format("Attempting bulkInsert %d Reviews to %s",
+                        values.length, uri.toString()));
+                tableName = MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME;
+                break;
 
             default:
                 return super.bulkInsert(uri, values);
         }
+        db.beginTransaction();
+        try {
+            for (ContentValues value : values) {
+                long _id = db.insertWithOnConflict(
+                        tableName,
+                        null,
+                        value,
+                        SQLiteDatabase.CONFLICT_REPLACE);
+                if (_id != -1) {
+                    rowsInserted++;
+                }
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+
+        if (rowsInserted > 0) {
+            Log.d("bulkInsert", String.format("Inserted %d rows", rowsInserted));
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsInserted;
     }
 
     @Override
@@ -181,6 +184,17 @@ public class MovieProvider extends ContentProvider {
                 Log.d("DetailsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
                 cursor = db.query(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME,
+                        projection,
+                        MovieContract.MovieEntry.COLUMN_ID + " = ?",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case CODE_MOVIE_REVIEWS:
+                Log.d("ReviewsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
+                selectionArguments = new String[]{uri.getLastPathSegment()};
+                cursor = db.query(MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME,
                         projection,
                         MovieContract.MovieEntry.COLUMN_ID + " = ?",
                         selectionArguments,
@@ -239,12 +253,21 @@ public class MovieProvider extends ContentProvider {
                             ");";
             db.execSQL(SQL_CREATE_MOVIE_DETAIL_TABLE);
 
+            final String SQL_CREATE_MOVIE_REVIEW_TABLE =
+                    "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME + "(" +
+                            MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR + " TEXT NOT NULL" +
+                            ");";
+            db.execSQL(SQL_CREATE_MOVIE_REVIEW_TABLE);
+
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME);
             onCreate(db);
 
         }
