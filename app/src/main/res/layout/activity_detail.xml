@@ -32,26 +32,26 @@
             <TextView
                 android:id="@+id/year_textview"
                 style="@style/DetailYear"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/runtime_textview"
                 app:layout_constraintHorizontal_chainStyle="spread"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="1998" />
 
             <TextView
                 android:id="@+id/runtime_textview"
                 style="@style/DetailRuntime"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toEndOf="@id/year_textview"
                 app:layout_constraintEnd_toStartOf="@id/rating_textview"
+                app:layout_constraintStart_toEndOf="@id/year_textview"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="108min" />
 
             <TextView
                 android:id="@+id/rating_textview"
                 style="@style/DetailRating"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toEndOf="@id/runtime_textview"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/runtime_textview"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:text="10/10" />
 
 
@@ -59,8 +59,8 @@
                 android:id="@+id/poster_imageview"
                 style="@style/DetailPoster"
                 android:contentDescription="@null"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/year_textview" />
             <!-- No contentDescription needed for the poster image -->
 
@@ -70,16 +70,27 @@
                 app:layout_constraintTop_toBottomOf="@id/poster_imageview"
                 tools:text="@tools:sample/lorem/random" />
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/review_rv"
-                app:layout_constraintTop_toBottomOf="@id/description_textview"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/description_textview">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/review_rv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <com.github.ybq.android.spinkit.SpinKitView
+                    android:id="@+id/reviews_loading"
+                    style="@style/DetailLoadingIndicator"
+                    app:SpinKit_Color="@android:color/darker_gray" />
+            </FrameLayout>
+
 
         </android.support.constraint.ConstraintLayout>
 
         <com.github.ybq.android.spinkit.SpinKitView
-            android:id="@+id/spinKitView"
+            android:id="@+id/details_loading"
             style="@style/DetailLoadingIndicator"
             app:SpinKit_Color="@android:color/darker_gray" />
 

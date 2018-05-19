@@ -39,7 +39,7 @@ public class MovieJSONUtilities {
         ContentValues[] reviewContentValues = new ContentValues[movieReviews.results.length];
         Log.d("parseReviews", String.format("Parsing %d movie reviews", movieReviews.results.length));
         for (int i = 0; i < movieReviews.results.length; i++) {
-            reviewContentValues[i] = movieReviews.results[i].toContentValues();
+            reviewContentValues[i] = movieReviews.results[i].toContentValues(movieReviews.id);
         }
         return reviewContentValues;
     }
@@ -88,21 +88,23 @@ public class MovieJSONUtilities {
     }
 
     class MovieReviewPage {
+        int id;
         MovieReview[] results;
     }
 
     class MovieReview {
-        int id;
+        String id;
         String author;
         String content;
         String url;
 
-        ContentValues toContentValues() {
+        ContentValues toContentValues(int movieId) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(MovieContract.MovieEntry.COLUMN_ID, this.id);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_ID, this.id);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_MOVIE_ID, movieId);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR, this.author);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT, this.content);
-            contentValues.put(MovieContract.MovieEntry.MOVIE_REVIEW_URL, this.url);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_URL, this.url);
             return contentValues;
 
         }

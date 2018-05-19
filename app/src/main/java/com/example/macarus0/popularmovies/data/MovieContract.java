@@ -69,6 +69,12 @@ public class MovieContract {
          */
         public static final String MOVIE_REVIEW_TABLE_NAME = "reviews";
 
+        /* This is the ID of the review */
+        public static final String COLUMN_REVIEW_ID = "id";
+
+        /* This is the ID given by TMDb */
+        public static final String COLUMN_REVIEW_MOVIE_ID = "movie_id";
+
         /* The content of the review */
         public static final String COLUMN_REVIEW_CONTENT = "content";
 
@@ -76,7 +82,7 @@ public class MovieContract {
         public static final String COLUMN_REVIEW_AUTHOR = "author";
 
         /* The URL of the review */
-        public static final String MOVIE_REVIEW_URL = "url";
+        public static final String COLUMN_REVIEW_URL = "url";
 
 
         /* Get the Uri for a specific movie */

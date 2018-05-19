@@ -25,6 +25,11 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
         return new ViewHolder(v);
     }
 
+    public void swapCursor(Cursor newCursor) {
+        mCursor = newCursor;
+        notifyDataSetChanged();
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ReviewAdapter.ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
@@ -34,7 +39,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return 0;
+        if (null == mCursor) return 0;
+        return mCursor.getCount();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

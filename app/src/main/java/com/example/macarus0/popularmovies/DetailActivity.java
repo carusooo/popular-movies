@@ -14,6 +14,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -32,10 +33,11 @@ import com.squareup.picasso.Target;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DetailActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
+    public static final int INDEX_REVIEW_AUTHOR = 0;
+    public static final int INDEX_REVIEW_CONTENT = 1;
     private static final String[] POPULAR_MOVIE_DETAIL_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_POSTER_PATH,
@@ -54,14 +56,10 @@ public class DetailActivity extends AppCompatActivity implements
             MovieContract.MovieEntry.COLUMN_RUNTIME,
     };
     private static final int INDEX_MOVIE_DETAIL_RUNTIME = 1;
-
     private static final String[] MOVIE_REVIEW_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR,
             MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT,
     };
-    public static final int INDEX_REVIEW_AUTHOR = 0;
-    public static final int INDEX_REVIEW_CONTENT = 1;
-
     private static final int ID_DETAIL_LOADER = 444;
     private static final int ID_REVIEW_LOADER = 445;
 
@@ -81,8 +79,10 @@ public class DetailActivity extends AppCompatActivity implements
     ConstraintLayout mContent;
     @BindView(R.id.review_rv)
     RecyclerView mReviews;
-    @BindView(R.id.spinKitView)
-    ProgressBar mProgressBar;
+    @BindView(R.id.details_loading)
+    ProgressBar mDetailsLoading;
+    @BindView(R.id.reviews_loading)
+    ProgressBar mReviewsLoading;
     @BindView(R.id.offline_error_details)
     ConstraintLayout mOfflineError;
     @BindView(R.id.offline_error_title)
@@ -93,8 +93,65 @@ public class DetailActivity extends AppCompatActivity implements
     ImageView mOfflineErrorIcon;
     @BindView(R.id.offline_error_retry_button)
     Button mOfflineErrorRetryButton;
+
     private String mMovieId;
     private NetworkUtils mNetworkUtils;
+    private ReviewAdapter mReviewAdapter;
+    private final LoaderManager.LoaderCallbacks<Cursor> DetailsCallbacks = new
+            LoaderManager.LoaderCallbacks<Cursor>() {
+                @NonNull
+                @Override
+                public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+                    return new CursorLoader(getApplicationContext(),
+                            MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
+                            MOVIE_DETAIL_PROJECTION,
+                            null,
+                            null,
+                            null);
+                }
+
+                @Override
+                public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+                    // Once the details have loaded, populate those fields in the UI
+                    if (data != null && data.moveToFirst()) {
+                        Log.d("onLoadFinished", "Loading Details");
+                        populateDetails(data);
+                    }
+                }
+
+                @Override
+                public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+                    // No need to rerun anything here, just show the loading indicators
+                }
+            };
+    private final LoaderManager.LoaderCallbacks<Cursor> ReviewsCallbacks = new
+            LoaderManager.LoaderCallbacks<Cursor>() {
+                @NonNull
+                @Override
+                public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+                    return new CursorLoader(getApplicationContext(),
+                            MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
+                            MOVIE_REVIEW_PROJECTION,
+                            null,
+                            null,
+                            null);
+                }
+
+                @Override
+                public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+                    // Once the details have loaded, populate those fields in the UI
+                    if (data != null && data.moveToFirst()) {
+                        Log.d("onLoadFinished", "Loading Details");
+                        mReviewAdapter.swapCursor(data);
+                    }
+                    showReviews();
+                }
+
+                @Override
+                public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+                    // No need to rerun anything here, just show the loading indicators
+                }
+            };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -121,11 +178,16 @@ public class DetailActivity extends AppCompatActivity implements
 
 
         /**
-         *  TODO
-         *  TODO  Create the layout manager and attach to the recyclerView
-         *  TODO  Wire up the Sync task to fetch reviews
-         *  TODO
+         *  Create the layout manager and attach to the recyclerView
+         *  Wire up the Sync task to fetch reviews
          **/
+        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this);
+        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mReviews.setLayoutManager(mLinearLayoutManager);
+        mReviews.setHasFixedSize(true);
+        mReviewAdapter = new ReviewAdapter(this);
+        mReviews.setAdapter(mReviewAdapter);
+
 
         // Check if the movie details are available
         Cursor detailCursor = getContentResolver().query(
@@ -136,29 +198,23 @@ public class DetailActivity extends AppCompatActivity implements
                 null
         );
 
-        // Check if the movie details are available
-        Cursor reviewCursor = getContentResolver().query(
-                MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
-                MOVIE_REVIEW_PROJECTION,
-                null,
-                null,
-                null
-        );
-        reviewCursor.close();
-
         // If the details are not available, send a request to fetch them
         if (null == detailCursor || detailCursor.getCount() == 0) {
             fetchDetails();
         } else {
-            detailCursor.moveToFirst();
+            detailCursor.moveToPosition(0);
             populateDetails(detailCursor);
         }
+        getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, ReviewsCallbacks);
+        PopularMoviesSyncUtils.syncMovieReviews(this, mMovieId);
+
+
     }
 
     private void fetchDetails() {
         if (NetworkUtils.isOnline(this)) {
-            // Set up a Loader to alert when the fetch is complete
-            getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, this);
+            // Set up a Loader to alert when the detail and review fetch is complete
+            getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, DetailsCallbacks);
             // Kick off the request
             PopularMoviesSyncUtils.syncMovieDetails(this, mMovieId);
         } else {
@@ -169,12 +225,14 @@ public class DetailActivity extends AppCompatActivity implements
     private void showLoading() {
         mContent.setVisibility(View.INVISIBLE);
         mOfflineError.setVisibility(View.INVISIBLE);
+        mReviews.setVisibility(View.INVISIBLE);
 
-        mProgressBar.setVisibility(View.VISIBLE);
+        mReviewsLoading.setVisibility(View.VISIBLE);
+        mDetailsLoading.setVisibility(View.VISIBLE);
     }
 
     private void showContent() {
-        mProgressBar.setVisibility(View.INVISIBLE);
+        mDetailsLoading.setVisibility(View.INVISIBLE);
         mOfflineError.setVisibility(View.INVISIBLE);
 
         mContent.setVisibility(View.VISIBLE);
@@ -182,7 +240,7 @@ public class DetailActivity extends AppCompatActivity implements
 
     private void showOffline() {
         mContent.setVisibility(View.INVISIBLE);
-        mProgressBar.setVisibility(View.INVISIBLE);
+        mDetailsLoading.setVisibility(View.INVISIBLE);
 
         mOfflineErrorIcon.setImageResource(R.drawable.ic_cloud_off_grey_24dp);
         mOfflineErrorTitle.setText(getText(R.string.error_offline_title));
@@ -220,6 +278,11 @@ public class DetailActivity extends AppCompatActivity implements
         showContent();
     }
 
+    private void showReviews() {
+        mReviews.setVisibility(View.VISIBLE);
+        mReviewsLoading.setVisibility(View.INVISIBLE);
+    }
+
     private void loadImageSetPalette(final ImageView imageView, final TextView[] textViews, final Window window, String url) {
         Picasso.with(this).load(url).into(new Target() {
             @Override
@@ -253,43 +316,4 @@ public class DetailActivity extends AppCompatActivity implements
         });
     }
 
-    @NonNull
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
-        switch (id) {
-            case ID_DETAIL_LOADER:
-                return new CursorLoader(this,
-                        MovieContract.MovieEntry.getMovieDetailsUri(mMovieId),
-                        MOVIE_DETAIL_PROJECTION,
-                        null,
-                        null,
-                        null);
-
-            case ID_REVIEW_LOADER:
-                return new CursorLoader(this,
-                        MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
-                        MOVIE_REVIEW_PROJECTION,
-                        null,
-                        null,
-                        null);
-
-            default:
-                throw new RuntimeException("Loader Not Implemented: " + id);
-        }
-    }
-
-    @Override
-    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        // Once the details have loaded, populate those fields in the UI
-        if (data != null && data.moveToFirst()) {
-            Log.d("onLoadFinished", "Loading Details");
-            populateDetails(data);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-        // No need to rerun anything here, just show the loading indicators
-
-    }
 }

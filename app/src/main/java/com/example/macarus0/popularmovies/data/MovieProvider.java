@@ -12,8 +12,8 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 public class MovieProvider extends ContentProvider {
-
     private static final int CODE_MOVIES_POPULAR = 100;
+
     private static final int CODE_MOVIE_POPULAR = 101;
     private static final int CODE_MOVIE_DETAILS = 102;
     private static final int CODE_MOVIE_REVIEWS = 103;
@@ -196,11 +196,12 @@ public class MovieProvider extends ContentProvider {
                 selectionArguments = new String[]{uri.getLastPathSegment()};
                 cursor = db.query(MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME,
                         projection,
-                        MovieContract.MovieEntry.COLUMN_ID + " = ?",
+                        MovieContract.MovieEntry.COLUMN_REVIEW_MOVIE_ID + " = ?",
                         selectionArguments,
                         null,
                         null,
                         sortOrder);
+                Log.d("Reviews", String.format("Retrieved %d reviews", cursor.getCount()));
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -255,9 +256,11 @@ public class MovieProvider extends ContentProvider {
 
             final String SQL_CREATE_MOVIE_REVIEW_TABLE =
                     "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME + "(" +
-                            MovieContract.MovieEntry.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_ID + " TEXT PRIMARY KEY," +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_MOVIE_ID + " INTEGER NOT NULL," +
                             MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT + " TEXT NOT NULL, " +
-                            MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR + " TEXT NOT NULL" +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_REVIEW_URL + " TEXT NOT NULL " +
                             ");";
             db.execSQL(SQL_CREATE_MOVIE_REVIEW_TABLE);
 

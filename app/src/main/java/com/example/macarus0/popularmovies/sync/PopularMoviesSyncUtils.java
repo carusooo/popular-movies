@@ -118,7 +118,7 @@ public class PopularMoviesSyncUtils {
     /*
      * Start a sync for movie reviews
      */
-    public static void syncMovieReview(@NonNull final Context context, String movieId ) {
+    public static void syncMovieReviews(@NonNull final Context context, String movieId ) {
         Log.d(TAG, "Kicking off sync");
         MovieJSONUtilities.JSONParser jsonParser = new MovieJSONUtilities.JSONParser() {
             @Override
