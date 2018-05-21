@@ -16,6 +16,7 @@
         tools:text="Office Space"
         tools:ignore="MissingPrefix" />
     <ScrollView
+        android:id="@+id/detail_scrollview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -70,22 +71,17 @@
                 app:layout_constraintTop_toBottomOf="@id/poster_imageview"
                 tools:text="@tools:sample/lorem/random" />
 
-            <FrameLayout
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/videos_rv"
+                app:layout_constraintTop_toBottomOf="@id/description_textview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/description_textview">
+                android:layout_height="wrap_content" />
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/review_rv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <com.github.ybq.android.spinkit.SpinKitView
-                    android:id="@+id/reviews_loading"
-                    style="@style/DetailLoadingIndicator"
-                    app:SpinKit_Color="@android:color/darker_gray" />
-            </FrameLayout>
-
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/review_rv"
+                app:layout_constraintTop_toBottomOf="@id/videos_rv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
         </android.support.constraint.ConstraintLayout>
 

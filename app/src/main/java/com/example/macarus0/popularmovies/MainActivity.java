@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onClick(long id, int position) {
+    public void onPosterClick(long id, int position) {
         mPosition = position;
         Intent detailIntent = new Intent(getApplicationContext(), DetailActivity.class);
         detailIntent.putExtra(DetailActivity.EXTRA_DETAIL_MOVIE_ID, Long.toString(id));

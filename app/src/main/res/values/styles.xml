@@ -99,6 +99,17 @@
         <item name="android:visibility">invisible</item>
     </style>
 
+    <style name="Card" parent="AppTheme">
+        <item name="android:padding">8sp</item>
+        <item name="android:layout_margin">4sp</item>
+    </style>
+
+    <style name="VideoCard" parent="Card">
+    </style>
+
+    <style name="ReviewCard" parent="Card">
+    </style>
+
     <!--Error message styles-->
 
     <style name="OfflineErrorMessage" parent="AppTheme">

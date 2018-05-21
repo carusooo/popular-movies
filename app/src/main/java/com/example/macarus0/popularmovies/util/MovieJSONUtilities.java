@@ -8,7 +8,39 @@ import com.google.gson.Gson;
 
 public class MovieJSONUtilities {
 
+    private MovieDetails mMovieDetails;
+
     public MovieJSONUtilities() {
+    }
+
+    public MovieJSONUtilities(String jsonString) {
+        Gson gson = new Gson();
+        mMovieDetails = gson.fromJson(jsonString, MovieDetails.class);
+    }
+
+    public String getMovieId() {
+        return Integer.toString(mMovieDetails.id);
+    }
+
+    public ContentValues[] getMovieDetails() {
+        ContentValues movieContentValues = mMovieDetails.toContentValues();
+        return new ContentValues[]{movieContentValues};
+    }
+
+    public ContentValues[] getReviews() {
+        ContentValues[] reviews = new ContentValues[mMovieDetails.reviews.results.length];
+        for(int i = 0; i < mMovieDetails.reviews.results.length; i++) {
+            reviews[i] = mMovieDetails.reviews.results[i].toContentValues(Integer.toString(this.mMovieDetails.id));
+        }
+        return reviews;
+    }
+
+    public ContentValues[] getVideos() {
+        ContentValues[] videos = new ContentValues[mMovieDetails.videos.results.length];
+        for(int i = 0; i < mMovieDetails.videos.results.length; i++) {
+             videos[i] = mMovieDetails.videos.results[i].toContentValues(Integer.toString(this.mMovieDetails.id));
+        }
+        return videos;
     }
 
     /*
@@ -33,16 +65,6 @@ public class MovieJSONUtilities {
         return new ContentValues[]{movieContentValues};
     }
 
-    public ContentValues[] parseReviews(String movieJson) {
-        Gson gson = new Gson();
-        MovieReviewPage movieReviews = gson.fromJson(movieJson, MovieReviewPage.class);
-        ContentValues[] reviewContentValues = new ContentValues[movieReviews.results.length];
-        Log.d("parseReviews", String.format("Parsing %d movie reviews", movieReviews.results.length));
-        for (int i = 0; i < movieReviews.results.length; i++) {
-            reviewContentValues[i] = movieReviews.results[i].toContentValues(movieReviews.id);
-        }
-        return reviewContentValues;
-    }
 
     public interface JSONParser {
         ContentValues[] parserFunction(String jsonString);
@@ -78,6 +100,8 @@ public class MovieJSONUtilities {
     class MovieDetails {
         int id;
         String runtime;
+        MovieReviewPage reviews;
+        VideoPage videos;
 
         ContentValues toContentValues() {
             ContentValues contentValues = new ContentValues();
@@ -88,7 +112,6 @@ public class MovieJSONUtilities {
     }
 
     class MovieReviewPage {
-        int id;
         MovieReview[] results;
     }
 
@@ -98,13 +121,38 @@ public class MovieJSONUtilities {
         String content;
         String url;
 
-        ContentValues toContentValues(int movieId) {
+        ContentValues toContentValues(String movieId) {
             ContentValues contentValues = new ContentValues();
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_ID, this.id);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_MOVIE_ID, movieId);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR, this.author);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT, this.content);
             contentValues.put(MovieContract.MovieEntry.COLUMN_REVIEW_URL, this.url);
+            return contentValues;
+
+        }
+    }
+
+    class VideoPage {
+        Video[] results;
+    }
+
+    class Video {
+
+        String id;
+        String site;
+        String key;
+        String name;
+        String type;
+
+        ContentValues toContentValues(String movieId) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_ID, this.id);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_MOVIE_ID, movieId);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_KEY, this.key);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_SITE, this.site);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_NAME, this.name);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_VIDEO_TYPE, this.type);
             return contentValues;
 
         }

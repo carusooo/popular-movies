@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,7 +60,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
 
     public interface MovieAdapterOnClickHandler {
-        void onClick(long id, int position);
+        void onPosterClick(long id, int position);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -69,7 +70,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             super(v);
             posterImageView = v.findViewById(R.id.poster_imageview);
             v.setOnClickListener(this);
-
         }
 
         @Override
@@ -77,7 +77,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
             long moviePosterId = mCursor.getLong(MainActivity.INDEX_POSTER_GRID_MOVIE_ID);
-            mOnClickHandler.onClick(moviePosterId, adapterPosition);
+            Log.d("onClick Poster", String.format("Clicking for %s", moviePosterId ));
+            mOnClickHandler.onPosterClick(moviePosterId, adapterPosition);
         }
 
     }

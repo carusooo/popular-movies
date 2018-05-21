@@ -22,6 +22,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     public ReviewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(mContext).inflate(R.layout.review_view,
                 parent, false);
+        v.setFocusable(false);
         return new ViewHolder(v);
     }
 

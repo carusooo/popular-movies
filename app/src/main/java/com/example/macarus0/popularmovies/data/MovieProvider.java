@@ -17,6 +17,7 @@ public class MovieProvider extends ContentProvider {
     private static final int CODE_MOVIE_POPULAR = 101;
     private static final int CODE_MOVIE_DETAILS = 102;
     private static final int CODE_MOVIE_REVIEWS = 103;
+    private static final int CODE_MOVIE_VIDEOS = 104;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
@@ -46,6 +47,11 @@ public class MovieProvider extends ContentProvider {
         matcher.addURI(authority, MovieContract.PATH_MOVIE_REVIEWS + "/#", CODE_MOVIE_REVIEWS);
         Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_REVIEWS + "/#"));
 
+        /* This URI is content://com.example.macarus0.popularmovies/videos/#### where #### is the
+         *  ID of a movie.
+         */
+        matcher.addURI(authority, MovieContract.PATH_MOVIE_VIDEOS + "/#", CODE_MOVIE_VIDEOS);
+        Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_VIDEOS + "/#"));
         return matcher;
 
     }
@@ -119,6 +125,11 @@ public class MovieProvider extends ContentProvider {
                 tableName = MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME;
                 break;
 
+            case CODE_MOVIE_VIDEOS:
+                Log.d("bulkInsert", String.format("Attempting bulkInsert %d Videos to %s",
+                        values.length, uri.toString()));
+                tableName = MovieContract.MovieEntry.MOVIE_VIDEO_TABLE_NAME;
+                break;
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -203,6 +214,19 @@ public class MovieProvider extends ContentProvider {
                         sortOrder);
                 Log.d("Reviews", String.format("Retrieved %d reviews", cursor.getCount()));
                 break;
+
+            case CODE_MOVIE_VIDEOS:
+                Log.d("ReviewsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
+                selectionArguments = new String[]{uri.getLastPathSegment()};
+                cursor = db.query(MovieContract.MovieEntry.MOVIE_VIDEO_TABLE_NAME,
+                        projection,
+                        MovieContract.MovieEntry.COLUMN_VIDEO_MOVIE_ID + " = ?",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
+                Log.d("Videos", String.format("Retrieved %d videos", cursor.getCount()));
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -264,6 +288,17 @@ public class MovieProvider extends ContentProvider {
                             ");";
             db.execSQL(SQL_CREATE_MOVIE_REVIEW_TABLE);
 
+            final String SQL_CREATE_MOVIE_VIDEO_TABLE =
+                    "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_VIDEO_TABLE_NAME + "(" +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_ID + " TEXT PRIMARY KEY," +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_MOVIE_ID + " INTEGER NOT NULL," +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_SITE + " TEXT NOT NULL, " +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_NAME + " TEXT, " +
+                            MovieContract.MovieEntry.COLUMN_VIDEO_TYPE + " TEXT NOT NULL " +
+                            ");";
+            db.execSQL(SQL_CREATE_MOVIE_VIDEO_TABLE);
+
         }
 
         @Override
@@ -271,6 +306,8 @@ public class MovieProvider extends ContentProvider {
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_VIDEO_TABLE_NAME);
+
             onCreate(db);
 
         }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,6 +23,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
@@ -33,11 +35,16 @@ import com.squareup.picasso.Target;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements
+        VideoAdapter.VideoOnClickHandler {
 
     public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
     public static final int INDEX_REVIEW_AUTHOR = 0;
     public static final int INDEX_REVIEW_CONTENT = 1;
+    public static final int INDEX_VIDEO_SITE = 0;
+    public static final int INDEX_VIDEO_KEY = 1;
+    public static final int INDEX_VIDEO_TYPE = 2;
+    public static final int INDEX_VIDEO_NAME = 3;
     private static final String[] POPULAR_MOVIE_DETAIL_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_POSTER_PATH,
@@ -60,8 +67,15 @@ public class DetailActivity extends AppCompatActivity {
             MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR,
             MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT,
     };
+    private static final String[] MOVIE_VIDEO_PROJECTION = {
+            MovieContract.MovieEntry.COLUMN_VIDEO_SITE,
+            MovieContract.MovieEntry.COLUMN_VIDEO_KEY,
+            MovieContract.MovieEntry.COLUMN_VIDEO_TYPE,
+            MovieContract.MovieEntry.COLUMN_VIDEO_NAME,
+    };
     private static final int ID_DETAIL_LOADER = 444;
     private static final int ID_REVIEW_LOADER = 445;
+    private static final int ID_VIDEO_LOADER = 446;
 
     @BindView(R.id.poster_imageview)
     ImageView mPoster;
@@ -77,12 +91,14 @@ public class DetailActivity extends AppCompatActivity {
     TextView mTitle;
     @BindView(R.id.detail_content)
     ConstraintLayout mContent;
+    @BindView(R.id.videos_rv)
+    RecyclerView mVideos;
     @BindView(R.id.review_rv)
     RecyclerView mReviews;
+    @BindView(R.id.detail_scrollview)
+    ScrollView mScrollView;
     @BindView(R.id.details_loading)
     ProgressBar mDetailsLoading;
-    @BindView(R.id.reviews_loading)
-    ProgressBar mReviewsLoading;
     @BindView(R.id.offline_error_details)
     ConstraintLayout mOfflineError;
     @BindView(R.id.offline_error_title)
@@ -95,8 +111,6 @@ public class DetailActivity extends AppCompatActivity {
     Button mOfflineErrorRetryButton;
 
     private String mMovieId;
-    private NetworkUtils mNetworkUtils;
-    private ReviewAdapter mReviewAdapter;
     private final LoaderManager.LoaderCallbacks<Cursor> DetailsCallbacks = new
             LoaderManager.LoaderCallbacks<Cursor>() {
                 @NonNull
@@ -124,6 +138,8 @@ public class DetailActivity extends AppCompatActivity {
                     // No need to rerun anything here, just show the loading indicators
                 }
             };
+    private NetworkUtils mNetworkUtils;
+    private ReviewAdapter mReviewAdapter;
     private final LoaderManager.LoaderCallbacks<Cursor> ReviewsCallbacks = new
             LoaderManager.LoaderCallbacks<Cursor>() {
                 @NonNull
@@ -143,6 +159,35 @@ public class DetailActivity extends AppCompatActivity {
                     if (data != null && data.moveToFirst()) {
                         Log.d("onLoadFinished", "Loading Details");
                         mReviewAdapter.swapCursor(data);
+                    }
+                    showReviews();
+                }
+
+                @Override
+                public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+                    // No need to rerun anything here, just show the loading indicators
+                }
+            };
+    private VideoAdapter mVideoAdapter;
+    private final LoaderManager.LoaderCallbacks<Cursor> VideosCallbacks = new
+            LoaderManager.LoaderCallbacks<Cursor>() {
+                @NonNull
+                @Override
+                public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+                    return new CursorLoader(getApplicationContext(),
+                            MovieContract.MovieEntry.getMovieVideosUri(mMovieId),
+                            MOVIE_VIDEO_PROJECTION,
+                            null,
+                            null,
+                            null);
+                }
+
+                @Override
+                public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+                    // Once the details have loaded, populate those fields in the UI
+                    if (data != null && data.moveToFirst()) {
+                        Log.d("onLoadFinished", "Loading Videos");
+                        mVideoAdapter.swapCursor(data);
                     }
                     showReviews();
                 }
@@ -176,14 +221,37 @@ public class DetailActivity extends AppCompatActivity {
         baseCursor.moveToFirst();
         populateUI(baseCursor);
 
+        /*
+         *  Create the layout manager for the videos and attach to the recyclerView
+         *  Scrolling is disabled here since the content is wrapped by a ScrollView
+         */
+        LinearLayoutManager mVideoLayoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
 
-        /**
-         *  Create the layout manager and attach to the recyclerView
-         *  Wire up the Sync task to fetch reviews
-         **/
-        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this);
-        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        mReviews.setLayoutManager(mLinearLayoutManager);
+        mVideoLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mVideos.setLayoutManager(mVideoLayoutManager);
+        mVideos.setHasFixedSize(true);
+        mVideoAdapter = new VideoAdapter(this, this);
+        mVideos.setAdapter(mVideoAdapter);
+
+
+        /*
+         *  Create the layout manager for the reviews and attach to the recyclerView
+         *  Scrolling is disabled here since the content is wrapped by a ScrollView
+         */
+        LinearLayoutManager mReviewLayoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
+
+        mReviewLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mReviews.setLayoutManager(mReviewLayoutManager);
         mReviews.setHasFixedSize(true);
         mReviewAdapter = new ReviewAdapter(this);
         mReviews.setAdapter(mReviewAdapter);
@@ -204,17 +272,36 @@ public class DetailActivity extends AppCompatActivity {
         } else {
             detailCursor.moveToPosition(0);
             populateDetails(detailCursor);
+
+            Cursor reviewCursor = getContentResolver().query(
+                    MovieContract.MovieEntry.getMovieReviewsUri(mMovieId),
+                    MOVIE_REVIEW_PROJECTION,
+                    null,
+                    null,
+                    null
+            );
+            mReviewAdapter.swapCursor(reviewCursor);
+            showReviews();
+
+            Cursor videoCursor = getContentResolver().query(
+                    MovieContract.MovieEntry.getMovieVideosUri(mMovieId),
+                    MOVIE_VIDEO_PROJECTION,
+                    null,
+                    null,
+                    null
+            );
+            mVideoAdapter.swapCursor(videoCursor);
+            showVideos();
         }
-        getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, ReviewsCallbacks);
-        PopularMoviesSyncUtils.syncMovieReviews(this, mMovieId);
-
-
     }
 
     private void fetchDetails() {
         if (NetworkUtils.isOnline(this)) {
             // Set up a Loader to alert when the detail and review fetch is complete
             getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, null, DetailsCallbacks);
+            getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, ReviewsCallbacks);
+            getSupportLoaderManager().initLoader(ID_VIDEO_LOADER, null, VideosCallbacks);
+
             // Kick off the request
             PopularMoviesSyncUtils.syncMovieDetails(this, mMovieId);
         } else {
@@ -227,7 +314,6 @@ public class DetailActivity extends AppCompatActivity {
         mOfflineError.setVisibility(View.INVISIBLE);
         mReviews.setVisibility(View.INVISIBLE);
 
-        mReviewsLoading.setVisibility(View.VISIBLE);
         mDetailsLoading.setVisibility(View.VISIBLE);
     }
 
@@ -279,9 +365,15 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void showReviews() {
+        mScrollView.scrollTo(0, 0);
         mReviews.setVisibility(View.VISIBLE);
-        mReviewsLoading.setVisibility(View.INVISIBLE);
     }
+
+    private void showVideos() {
+        mScrollView.scrollTo(0, 0);
+        mVideos.setVisibility(View.VISIBLE);
+    }
+
 
     private void loadImageSetPalette(final ImageView imageView, final TextView[] textViews, final Window window, String url) {
         Picasso.with(this).load(url).into(new Target() {
@@ -316,4 +408,18 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onVideoClick(String url) {
+        this.launchUrl(url);
+    }
+
+    private void launchUrl(String urlString) {
+        Uri url = Uri.parse(urlString);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, url);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+
+    }
 }

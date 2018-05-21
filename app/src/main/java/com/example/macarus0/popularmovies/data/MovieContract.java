@@ -21,6 +21,8 @@ public class MovieContract {
 
     public static final String PATH_MOVIE_REVIEWS = "reviews";
 
+    public static final String PATH_MOVIE_VIDEOS = "videos";
+
 
     public static final class MovieEntry implements BaseColumns {
 
@@ -70,10 +72,10 @@ public class MovieContract {
         public static final String MOVIE_REVIEW_TABLE_NAME = "reviews";
 
         /* This is the ID of the review */
-        public static final String COLUMN_REVIEW_ID = "id";
+        public static final String COLUMN_REVIEW_ID = "review_id";
 
         /* This is the ID given by TMDb */
-        public static final String COLUMN_REVIEW_MOVIE_ID = "movie_id";
+        public static final String COLUMN_REVIEW_MOVIE_ID = "review_movie_id";
 
         /* The content of the review */
         public static final String COLUMN_REVIEW_CONTENT = "content";
@@ -83,6 +85,29 @@ public class MovieContract {
 
         /* The URL of the review */
         public static final String COLUMN_REVIEW_URL = "url";
+
+        /*
+         * Table for the videos of a movie
+         */
+        public static final String MOVIE_VIDEO_TABLE_NAME = "videos";
+
+        /* This is the ID of the video*/
+        public static final String COLUMN_VIDEO_ID = "video_id";
+
+        /* This is the movie ID given by TMDb */
+        public static final String COLUMN_VIDEO_MOVIE_ID = "video_movie_id";
+
+        /* The site hosting the video */
+        public static final String COLUMN_VIDEO_SITE = "site";
+
+        /* The key for the video */
+        public static final String COLUMN_VIDEO_KEY = "video_key";
+
+        /* The title for the video */
+        public static final String COLUMN_VIDEO_NAME = "video_name";
+
+        /* The type of the video */
+        public static final String COLUMN_VIDEO_TYPE = "video_type";
 
 
         /* Get the Uri for a specific movie */
@@ -107,6 +132,14 @@ public class MovieContract {
         public static Uri getMovieReviewsUri(String movieId) {
             return BASE_CONTENT_URI.buildUpon().
                     appendPath(PATH_MOVIE_REVIEWS).
+                    appendPath(movieId)
+                    .build();
+        }
+
+        /* Get the Uri for a movie's videos */
+        public static Uri getMovieVideosUri(String movieId) {
+            return BASE_CONTENT_URI.buildUpon().
+                    appendPath(PATH_MOVIE_VIDEOS).
                     appendPath(movieId)
                     .build();
         }
