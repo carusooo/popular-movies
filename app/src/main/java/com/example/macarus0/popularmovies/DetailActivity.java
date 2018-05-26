@@ -365,12 +365,10 @@ public class DetailActivity extends AppCompatActivity implements
     }
 
     private void showReviews() {
-        mScrollView.scrollTo(0, 0);
         mReviews.setVisibility(View.VISIBLE);
     }
 
     private void showVideos() {
-        mScrollView.scrollTo(0, 0);
         mVideos.setVisibility(View.VISIBLE);
     }
 
