@@ -2,6 +2,7 @@ package com.example.macarus0.popularmovies;
 
 import android.content.Intent;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -11,17 +12,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.sync.PopularMoviesSyncUtils;
@@ -33,7 +31,7 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
         MovieAdapter.MovieAdapterOnClickHandler,
-        AdapterView.OnItemSelectedListener {
+        BottomNavigationView.OnNavigationItemSelectedListener{
 
     public static final int INDEX_POSTER_GRID_MOVIE_ID = 0;
     public static final int INDEX_POSTER_GRID_POSTER_PATH = 1;
@@ -48,18 +46,14 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String SCROLL_POSITION = "scroll_position";
     private static final String RECYCLER_STATE = "recycler_state";
-    private static final String SPINNER_POSITION = "spinner_position";
+    private static final String NAVIGATION_SELECTION = "navigation_selection";
 
-    @BindView(R.id.main_toolbar)
-    Toolbar mToolbar;
-    @BindView(R.id.sort_options)
-    Spinner mSpinner;
-    @BindView(R.id.main_layout)
-    FrameLayout mMainLayout;
     @BindView(R.id.loading_indicator)
     ProgressBar mProgressBar;
     @BindView(R.id.recycler_view)
     RecyclerView mRecyclerView;
+    @BindView(R.id.navigation)
+    BottomNavigationView mBottomNavigationView;
     @BindView(R.id.offline_error_main)
     ConstraintLayout mOfflineError;
     @BindView(R.id.offline_error_title)
@@ -74,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements
     private MovieAdapter mMovieAdapter;
     private int mPosition = RecyclerView.NO_POSITION;
     private GridLayoutManager mLayoutManager;
-    private int mSpinnerPosition = 0;
+    private int mSelectedItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,17 +77,7 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        // Set up the toolbar to support changing the sort order
-        setSupportActionBar(mToolbar);
-        ArrayAdapter<CharSequence> sortOptionsAdapter = ArrayAdapter.createFromResource(this,
-                R.array.sort_options, R.layout.spinner_item);
-        sortOptionsAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        mSpinner.setAdapter(sortOptionsAdapter);
-        if (savedInstanceState != null) {
-            mSpinnerPosition = savedInstanceState.getInt(SPINNER_POSITION);
-        }
-        mSpinner.setOnItemSelectedListener(this);
-        mSpinner.setSelection(mSpinnerPosition, false); // Set the spinner to the default value before attaching the listener
+        mBottomNavigationView.setOnNavigationItemSelectedListener(this);
 
         // Set up the GridLayout of poster images
         mLayoutManager = new GridLayoutManager(this, 2);
@@ -106,6 +90,9 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState != null) {
             mLayoutManager.onRestoreInstanceState(savedInstanceState);
             mPosition = savedInstanceState.getInt(SCROLL_POSITION);
+            mBottomNavigationView.setSelectedItemId(mSelectedItem);
+            mSelectedItem = savedInstanceState.getInt(NAVIGATION_SELECTION);
+            this.onBottomNavItemSelected(mSelectedItem);
         }
 
         showLoading();
@@ -125,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void showLoading() {
-        mSpinner.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.INVISIBLE);
         mOfflineError.setVisibility(View.INVISIBLE);
 
@@ -137,13 +123,11 @@ public class MainActivity extends AppCompatActivity implements
         mProgressBar.setVisibility(View.INVISIBLE);
         mOfflineError.setVisibility(View.INVISIBLE);
 
-        mSpinner.setVisibility(View.VISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void showOffline() {
         mProgressBar.setVisibility(View.INVISIBLE);
-        mSpinner.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.INVISIBLE);
 
         mOfflineErrorIcon.setImageResource(R.drawable.ic_cloud_off_grey_24dp);
@@ -168,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements
             mPosition = mLayoutManager.findFirstVisibleItemPosition();
         }
         outState.putInt(SCROLL_POSITION, mPosition);
-        outState.putInt(SPINNER_POSITION, mSpinnerPosition);
+        outState.putInt(NAVIGATION_SELECTION, mBottomNavigationView.getSelectedItemId());
         outState.putParcelable(RECYCLER_STATE, mLayoutManager.onSaveInstanceState());
     }
 
@@ -177,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState != null) {
             mPosition = savedInstanceState.getInt(SCROLL_POSITION);
-            mSpinnerPosition = savedInstanceState.getInt(SPINNER_POSITION);
+            mSelectedItem = savedInstanceState.getInt(NAVIGATION_SELECTION);
             mLayoutManager.onRestoreInstanceState(savedInstanceState);
         }
     }
@@ -229,33 +213,32 @@ public class MainActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        mSelectedItem = item.getItemId();
         if(NetworkUtils.isOnline(this)) {
-            switch (position) {
-                case 0:
-                    // Popular was selected
-                    getSupportLoaderManager().restartLoader(ID_POPULAR_MOVIE_LOADER, null, this);
-                    break;
-                case 1:
-                    // Top Rated was selected
-                    getSupportLoaderManager().restartLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
-                    break;
-            }
-            if(mSpinnerPosition != position) {
-                mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
-            }
-            mSpinnerPosition = position;
+            onBottomNavItemSelected(mSelectedItem);
+            mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
             showLoading();
         } else {
-            // Since the reload didn't complete, set the spinner to the previous value
-            mSpinner.setSelection(mSpinnerPosition, false);
             showOffline();
         }
+        return true;
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
+    private void onBottomNavItemSelected(int id) {
+        mSelectedItem = id;
+        switch (mSelectedItem) {
+            case R.id.action_popular:
+                getSupportLoaderManager().restartLoader(ID_POPULAR_MOVIE_LOADER, null, this);
+                break;
+            case R.id.action_top_rated:
+                getSupportLoaderManager().restartLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
+                break;
+            case R.id.action_favorites:
+                Toast toast = Toast.makeText(this, "No favorites yet", Toast.LENGTH_SHORT);
+                toast.show();
+                break;
+        }
 
     }
-
 }

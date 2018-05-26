@@ -2,10 +2,9 @@
     <string name="app_name">Popular Movies</string>
     <string name="rating_suffix">%s/10</string>
     <string name="runtime_units">%sm</string>
-    <string-array name="sort_options">
-        <item>Popular</item>
-        <item>Top Rated</item>
-    </string-array>
+    <string name="sort_options_popular">Popular</string>
+    <string name="sort_options_top_rated">Top rated</string>
+    <string name="sort_options_favorites">Favorites</string>
     <string name="error_offline_title">Device is offline</string>
     <string name="error_offline_main_text">Unable to retrieve movies, your device is offline.</string>
     <string name="error_offline_details_text">Unable to retrieve movie details, your device is offline.</string>

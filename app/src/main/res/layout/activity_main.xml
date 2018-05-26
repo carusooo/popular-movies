@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/linear_layout"
@@ -8,33 +9,40 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/main_toolbar"
-        style="@style/MainToolbar"
-        >
-        <Spinner
-            android:id="@+id/sort_options"
-            style="@style/Spinner"
-            />
-    </android.support.v7.widget.Toolbar>
-
-<FrameLayout
-    android:id="@+id/main_layout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="vertical"/>
     <com.github.ybq.android.spinkit.SpinKitView
         android:id="@+id/loading_indicator"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
         app:SpinKit_Color="@color/colorPrimaryDark"
         style="@style/MainLoadingIndicator"/>
+
     <include layout="@layout/error_offline_view"
         android:id="@+id/offline_error_main"
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
+        android:layout_height="match_parent"
         style="@style/OfflineError"
         />
-</FrameLayout>
 
-</LinearLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_alignParentTop="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/navigation"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:scrollbars="vertical"/>
+
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/navigation"
+        style="@style/BottomToolbar"
+        android:layout_width="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:itemBackground="@color/colorPrimaryDark"
+        app:itemIconTint="@drawable/nav_item_color_state"
+        app:itemTextColor="@drawable/nav_item_color_state"
+        app:menu="@menu/movie_browse_selections" />
+
+</android.support.constraint.ConstraintLayout>

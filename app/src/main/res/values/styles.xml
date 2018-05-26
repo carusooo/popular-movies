@@ -8,32 +8,18 @@
 
     </style>
 
-    <style name="MainToolbar" parent="AppTheme">
+    <style name="BottomToolbar" parent="AppTheme">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">?attr/actionBarSize</item>
         <item name="android:background">?attr/colorPrimaryDark</item>
-        <item name="android:elevation" tools:targetApi="lollipop">4dp</item>
         <item name="android:theme"> @style/ToolbarText</item>
+
     </style>
 
     <style name="ToolbarText" parent="AppTheme">
         <item name="android:background">?attr/colorPrimaryDark</item>
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:textSize">18sp</item>
-    </style>
-
-    <style name="Spinner" parent="AppTheme">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_gravity">end</item>
-        <item name="android:theme"> @style/ToolbarText</item>
-    </style>
-
-    <style name="SpinnerDropdownItem" parent="AppTheme">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:padding">8dip</item>
-        <item name="android:theme"> @style/ToolbarText</item>
     </style>
 
     <style name="MainLoadingIndicator" parent="@style/SpinKitView.Large.CubeGrid">
