@@ -19,6 +19,8 @@ public class MovieContract {
 
     public static final String PATH_MOVIE_DETAILS = "details";
 
+    public static final String PATH_MOVIE_FAVORITES = "favorites";
+
     public static final String PATH_MOVIE_REVIEWS = "reviews";
 
     public static final String PATH_MOVIE_VIDEOS = "videos";
@@ -108,6 +110,20 @@ public class MovieContract {
 
         /* The type of the video */
         public static final String COLUMN_VIDEO_TYPE = "video_type";
+
+        /*
+         * Table for storing favorite status
+         */
+        public static final String MOVIE_FAVORITE_TABLE_NAME = "favorites";
+
+        /* This is the movie ID given by TMDb */
+        public static final String COLUMN_FAVORITE_MOVIE_ID = "favorite_movie_id";
+
+        /* Whether or not the video is a favorite */
+        public static final String COLUMN_FAVORITE_STATUS = "favorite";
+
+        /* When the video was marked as favorite */
+        public static final String COLUMN_FAVORITE_DATE = "favorite_datea";
 
 
         /* Get the Uri for a specific movie */

@@ -13,11 +13,11 @@ import android.util.Log;
 
 public class MovieProvider extends ContentProvider {
     private static final int CODE_MOVIES_POPULAR = 100;
-
     private static final int CODE_MOVIE_POPULAR = 101;
     private static final int CODE_MOVIE_DETAILS = 102;
     private static final int CODE_MOVIE_REVIEWS = 103;
     private static final int CODE_MOVIE_VIDEOS = 104;
+    private static final int CODE_MOVIES_FAVORITES = 105;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private MovieDbHelper mOpenHelper;
 
@@ -28,6 +28,10 @@ public class MovieProvider extends ContentProvider {
         /* This URI is content://com.example.macarus0.popularmovies/movies/ */
         matcher.addURI(authority, MovieContract.PATH_POPULAR_MOVIES, CODE_MOVIES_POPULAR);
         Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_POPULAR_MOVIES));
+
+        /* This URI is content://com.example.macarus0.popularmovies/favorites/ */
+        matcher.addURI(authority, MovieContract.PATH_MOVIE_FAVORITES, CODE_MOVIES_FAVORITES);
+        Log.d("buildUriMatcher", String.format("Built URI matcher %s/%s", authority, MovieContract.PATH_MOVIE_FAVORITES));
 
         /* This URI is content://com.example.macarus0.popularmovies/movies/#### where #### is the
          *  ID of a movie.
@@ -105,6 +109,8 @@ public class MovieProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int rowsInserted = 0;
         String tableName;
+        int onConflict = SQLiteDatabase.CONFLICT_REPLACE;
+        String nullColumnHack = null;
         switch (sUriMatcher.match(uri)) {
 
             case CODE_MOVIES_POPULAR:
@@ -117,6 +123,13 @@ public class MovieProvider extends ContentProvider {
                 Log.d("bulkInsert", String.format("Attempting bulkInsert %d MovieDetails to %s",
                         values.length, uri.toString()));
                 tableName = MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME;
+                break;
+
+            case CODE_MOVIES_FAVORITES:
+                Log.d("bulkInsert", String.format("Attempting bulkInsert %d MovieDetails to %s",
+                        values.length, uri.toString()));
+                tableName = MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME;
+                onConflict = SQLiteDatabase.CONFLICT_IGNORE;
                 break;
 
             case CODE_MOVIE_REVIEWS:
@@ -138,9 +151,9 @@ public class MovieProvider extends ContentProvider {
             for (ContentValues value : values) {
                 long _id = db.insertWithOnConflict(
                         tableName,
-                        null,
+                        nullColumnHack,
                         value,
-                        SQLiteDatabase.CONFLICT_REPLACE);
+                        onConflict);
                 if (_id != -1) {
                     rowsInserted++;
                 }
@@ -179,6 +192,18 @@ public class MovieProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+
+            case CODE_MOVIES_FAVORITES:
+                cursor = db.rawQuery("SELECT *" +
+                                " FROM "+ MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME +
+                                " JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
+                                " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
+                                + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID +
+                                " WHERE " + MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1 "+
+                                " ORDER BY " + MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " DESC;",
+                        null);
+                break;
+
             case CODE_MOVIE_POPULAR:
                 Log.d("MovieQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
@@ -194,14 +219,15 @@ public class MovieProvider extends ContentProvider {
             case CODE_MOVIE_DETAILS:
                 Log.d("DetailsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
-                cursor = db.query(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME,
-                        projection,
-                        MovieContract.MovieEntry.COLUMN_ID + " = ?",
-                        selectionArguments,
-                        null,
-                        null,
-                        sortOrder);
+                cursor = db.rawQuery("SELECT *" +
+                                " FROM "+ MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME+
+                                " LEFT JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
+                                " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
+                                + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID +
+                                " WHERE " + MovieContract.MovieEntry.COLUMN_ID + "=?; ",
+                        selectionArguments);
                 break;
+
             case CODE_MOVIE_REVIEWS:
                 Log.d("ReviewsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
@@ -299,6 +325,14 @@ public class MovieProvider extends ContentProvider {
                             ");";
             db.execSQL(SQL_CREATE_MOVIE_VIDEO_TABLE);
 
+            final String SQL_CREATE_MOVIE_FAVORITE_TABLE =
+                    "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME+ "(" +
+                            MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID + " TEXT PRIMARY KEY," +
+                            MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS+ " INTEGER DEFAULT 0, " +
+                            MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " DATETIME DEFAULT CURRENT_DATE" +
+                            ");";
+            db.execSQL(SQL_CREATE_MOVIE_FAVORITE_TABLE);
+
         }
 
         @Override
@@ -307,6 +341,7 @@ public class MovieProvider extends ContentProvider {
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_REVIEW_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_VIDEO_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME);
 
             onCreate(db);
 
