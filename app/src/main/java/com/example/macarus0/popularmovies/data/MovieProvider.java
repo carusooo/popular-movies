@@ -7,6 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -194,14 +195,22 @@ public class MovieProvider extends ContentProvider {
                 break;
 
             case CODE_MOVIES_FAVORITES:
-                cursor = db.rawQuery("SELECT *" +
-                                " FROM "+ MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME +
-                                " JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
-                                " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
-                                + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID +
-                                " WHERE " + MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1 "+
-                                " ORDER BY " + MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " DESC;",
-                        null);
+                SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+                qb.setTables(MovieContract.MovieEntry.POPULAR_MOVIE_TABLE_NAME +
+                        " JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
+                        " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
+                        + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID);
+                StringBuilder columns = new StringBuilder();
+                qb.appendColumns(columns, projection);
+                qb.appendWhere(MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1 ");
+
+                cursor = qb.query(db,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
                 break;
 
             case CODE_MOVIE_POPULAR:
@@ -219,7 +228,8 @@ public class MovieProvider extends ContentProvider {
             case CODE_MOVIE_DETAILS:
                 Log.d("DetailsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
-                cursor = db.rawQuery("SELECT *" +
+                cursor = db.rawQuery("SELECT " +MovieContract.MovieEntry.COLUMN_RUNTIME + ", " +
+                                MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS  +
                                 " FROM "+ MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME+
                                 " LEFT JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
                                 " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
@@ -262,9 +272,30 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public int update(@NonNull Uri uri, ContentValues values, String selection,
-                      String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+                  String[] selectionArgs) {
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        long _id = -1;
+        switch (sUriMatcher.match(uri)) {
+            case CODE_MOVIES_FAVORITES:
+                db.beginTransaction();
+                try {
+                    _id = db.replace(
+                            MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME,
+                            null,
+                            values);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Not yet implemented");
+        }
+        if (_id != -1) {
+            Log.d("insert",String.format("Inserted row %s", uri.toString()));
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return _id != -1? 1: 0;
     }
 
     class MovieDbHelper extends SQLiteOpenHelper {

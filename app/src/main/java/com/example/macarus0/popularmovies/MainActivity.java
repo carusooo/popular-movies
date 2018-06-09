@@ -1,6 +1,7 @@
 package com.example.macarus0.popularmovies;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.LoaderManager;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements
     };
     private static final int ID_POPULAR_MOVIE_LOADER = 999;
     private static final int ID_TOP_RATED_MOVIE_LOADER = 998;
+    private static final int ID_FAVORITE_MOVIE_LOADER = 997;
 
     private static final String SCROLL_POSITION = "scroll_position";
     private static final String RECYCLER_STATE = "recycler_state";
@@ -179,6 +181,10 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder;
+        String[] selectionArgs = null;
+        String selection = MovieContract.MovieEntry.getSelectionForTodaysMovies();
+        Uri uri = MovieContract.MovieEntry.POPULAR_URI;
+        sortOrder = null;
         switch (id) {
             case ID_POPULAR_MOVIE_LOADER:
                 sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC LIMIT 20";
@@ -186,14 +192,18 @@ public class MainActivity extends AppCompatActivity implements
             case ID_TOP_RATED_MOVIE_LOADER:
                 sortOrder = MovieContract.MovieEntry.COLUMN_USER_RATING + " DESC LIMIT 20";
                 break;
+            case ID_FAVORITE_MOVIE_LOADER:
+                uri = MovieContract.MovieEntry.FAVORITE_URI;
+                selection = null;
+                break;
             default:
                 throw new RuntimeException("Loader Not Implemented: " + id);
         }
         return new CursorLoader(this,
-                MovieContract.MovieEntry.POPULAR_URI,
+                uri,
                 POSTER_GRID_PROJECTION,
-                MovieContract.MovieEntry.getSelectionForTodaysMovies(),
-                null,
+                selection,
+                selectionArgs,
                 sortOrder);
     }
 
@@ -207,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<Cursor> loader){
         mMovieAdapter.swapCursor(null);
     }
 
@@ -229,14 +239,15 @@ public class MainActivity extends AppCompatActivity implements
         mSelectedItem = id;
         switch (mSelectedItem) {
             case R.id.action_popular:
+                getSupportLoaderManager().destroyLoader(ID_FAVORITE_MOVIE_LOADER);
                 getSupportLoaderManager().restartLoader(ID_POPULAR_MOVIE_LOADER, null, this);
                 break;
             case R.id.action_top_rated:
+                getSupportLoaderManager().destroyLoader(ID_FAVORITE_MOVIE_LOADER);
                 getSupportLoaderManager().restartLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
                 break;
             case R.id.action_favorites:
-                Toast toast = Toast.makeText(this, "No favorites yet", Toast.LENGTH_SHORT);
-                toast.show();
+                getSupportLoaderManager().restartLoader(ID_FAVORITE_MOVIE_LOADER, null, this);
                 break;
         }
 

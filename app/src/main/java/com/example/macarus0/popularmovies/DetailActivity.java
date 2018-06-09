@@ -1,5 +1,6 @@
 package com.example.macarus0.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -25,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.sync.PopularMoviesSyncUtils;
@@ -36,7 +38,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class DetailActivity extends AppCompatActivity implements
-        VideoAdapter.VideoOnClickHandler {
+        VideoAdapter.VideoOnClickHandler, ToggleButton.OnClickListener {
 
     public static final String EXTRA_DETAIL_MOVIE_ID = "detail_id";
     public static final int INDEX_REVIEW_AUTHOR = 0;
@@ -59,10 +61,11 @@ public class DetailActivity extends AppCompatActivity implements
     private static final int INDEX_MOVIE_DETAIL_RELEASE_DATE = 4;
     private static final int INDEX_MOVIE_DETAIL_USER_RATING = 5;
     private static final String[] MOVIE_DETAIL_PROJECTION = {
-            MovieContract.MovieEntry.COLUMN_ID,
             MovieContract.MovieEntry.COLUMN_RUNTIME,
+            MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS
     };
-    private static final int INDEX_MOVIE_DETAIL_RUNTIME = 1;
+    private static final int INDEX_MOVIE_DETAIL_RUNTIME = 0;
+    private static final int INDEX_MOVIE_DETAIL_FAVORITE = 1;
     private static final String[] MOVIE_REVIEW_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_REVIEW_AUTHOR,
             MovieContract.MovieEntry.COLUMN_REVIEW_CONTENT,
@@ -79,6 +82,8 @@ public class DetailActivity extends AppCompatActivity implements
 
     @BindView(R.id.poster_imageview)
     ImageView mPoster;
+    @BindView(R.id.favorite_togglebutton)
+    ToggleButton mFavoriteToggleButton;
     @BindView(R.id.description_textview)
     TextView mDescription;
     @BindView(R.id.year_textview)
@@ -210,6 +215,8 @@ public class DetailActivity extends AppCompatActivity implements
 
         mNetworkUtils = NetworkUtils.getInstance(getString(R.string.tmbd_api_key));
         showLoading();
+
+        mFavoriteToggleButton.setOnClickListener(this);
 
         Cursor baseCursor = getContentResolver().query(
                 MovieContract.MovieEntry.getMovieUri(mMovieId),
@@ -361,6 +368,7 @@ public class DetailActivity extends AppCompatActivity implements
 
         mRuntime.setText(getString(R.string.runtime_units,
                 detailCursor.getString(INDEX_MOVIE_DETAIL_RUNTIME)));
+        mFavoriteToggleButton.setChecked((detailCursor.getInt(INDEX_MOVIE_DETAIL_FAVORITE) == 1));
         showContent();
     }
 
@@ -419,5 +427,20 @@ public class DetailActivity extends AppCompatActivity implements
             startActivity(intent);
         }
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID, this.mMovieId);
+        int isFavorite = 0;
+        if(mFavoriteToggleButton.isChecked()){
+            isFavorite = 1;
+        }
+        contentValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS, isFavorite);
+        getContentResolver().update(MovieContract.MovieEntry.FAVORITE_URI,
+                contentValues,
+                null,
+                null);
     }
 }

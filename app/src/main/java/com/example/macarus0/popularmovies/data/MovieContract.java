@@ -32,6 +32,10 @@ public class MovieContract {
                 appendPath(PATH_POPULAR_MOVIES)
                 .build();
 
+        public static final Uri FAVORITE_URI = BASE_CONTENT_URI.buildUpon().
+                appendPath(PATH_MOVIE_FAVORITES)
+                .build();
+
         public static final String POPULAR_MOVIE_TABLE_NAME = "popular_movies";
 
         /* This is the ID given by TMDb */
@@ -166,7 +170,6 @@ public class MovieContract {
                     "yyyy-MM-dd", Locale.getDefault());
             return "date(" + COLUMN_POPULARITY_DATE + ") >= date(\"" + dateFormat.format(new Date()) + "\")";
         }
-
 
     }
 

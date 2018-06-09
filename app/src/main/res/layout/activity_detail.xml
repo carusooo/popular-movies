@@ -63,8 +63,17 @@
                 android:contentDescription="@null"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/year_textview" />
+                app:layout_constraintTop_toBottomOf="@id/year_textview"
+                tools:src="@drawable/placeholder"/>
             <!-- No contentDescription needed for the poster image -->
+
+            <ToggleButton
+                android:id="@+id/favorite_togglebutton"
+                style="@style/DetailFavoriteButton"
+                app:layout_constraintEnd_toEndOf="@id/poster_imageview"
+                app:layout_constraintBottom_toBottomOf="@id/poster_imageview"
+                android:background="@drawable/ic_toggle_bg"/>
+
 
             <TextView
                 android:id="@+id/description_textview"
