@@ -103,7 +103,9 @@
         <include
             android:id="@+id/offline_error_details"
             style="@style/OfflineError"
-            layout="@layout/error_offline_view" />
+            layout="@layout/error_offline_view"
+            android:background="@android:color/white" />
+
     </FrameLayout>
     </ScrollView>
 </LinearLayout>
