@@ -194,7 +194,7 @@ public class DetailActivity extends AppCompatActivity implements
                         Log.d("onLoadFinished", "Loading Videos");
                         mVideoAdapter.swapCursor(data);
                     }
-                    showReviews();
+                    showVideos();
                 }
 
                 @Override

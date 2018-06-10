@@ -13,7 +13,6 @@
         app:autoSizeTextType="uniform"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:focusableInTouchMode="true"
         tools:text="Office Space"
         tools:ignore="MissingPrefix" />
     <ScrollView
@@ -23,6 +22,7 @@
 
     <FrameLayout
         android:id="@+id/detail_layout"
+        android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
