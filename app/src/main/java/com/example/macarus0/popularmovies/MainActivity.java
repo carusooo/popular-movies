@@ -20,7 +20,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.sync.PopularMoviesSyncUtils;
@@ -31,7 +30,7 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
-        MovieAdapter.MovieAdapterOnClickHandler,
+        PosterAdapter.MovieAdapterOnClickHandler,
         BottomNavigationView.OnNavigationItemSelectedListener{
 
     public static final int INDEX_POSTER_GRID_MOVIE_ID = 0;
@@ -67,10 +66,10 @@ public class MainActivity extends AppCompatActivity implements
     @BindView(R.id.offline_error_retry_button)
     Button mOfflineErrorRetryButton;
 
-    private MovieAdapter mMovieAdapter;
+    private PosterAdapter mPosterAdapter;
     private int mPosition = RecyclerView.NO_POSITION;
     private GridLayoutManager mLayoutManager;
-    private int mSelectedItem = R.id.action_popular;
+    private int mSelectedItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,14 +79,15 @@ public class MainActivity extends AppCompatActivity implements
         ButterKnife.bind(this);
 
         mBottomNavigationView.setOnNavigationItemSelectedListener(this);
+        mSelectedItem = mBottomNavigationView.getSelectedItemId();
 
         // Set up the GridLayout of poster images
         mLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
-        mMovieAdapter = new MovieAdapter(this, this,
+        mPosterAdapter = new PosterAdapter(this, this,
                 NetworkUtils.getInstance(getString(R.string.tmbd_api_key)));
-        mRecyclerView.setAdapter(mMovieAdapter);
+        mRecyclerView.setAdapter(mPosterAdapter);
 
         if (savedInstanceState != null) {
             mLayoutManager.onRestoreInstanceState(savedInstanceState);
@@ -108,6 +108,8 @@ public class MainActivity extends AppCompatActivity implements
             onBottomNavItemSelected(mSelectedItem);
             // Start the data sync to load in the movies
             PopularMoviesSyncUtils.initialize(this);
+        } else if (mSelectedItem == R.id.action_favorites) {
+            onBottomNavItemSelected(mSelectedItem);
         } else {
             showOffline();
         }
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
         Log.d("onLoadFinished", String.format("Swapping Cursor, retrieved %d movies", data.getCount()));
-        mMovieAdapter.swapCursor(data);
+        mPosterAdapter.swapCursor(data);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mRecyclerView.smoothScrollToPosition(mPosition);
         hideLoading();
@@ -194,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case ID_FAVORITE_MOVIE_LOADER:
                 uri = MovieContract.MovieEntry.FAVORITE_URI;
+                sortOrder = MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " DESC";
                 selection = null;
                 break;
             default:
@@ -218,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader){
-        mMovieAdapter.swapCursor(null);
+        mPosterAdapter.swapCursor(null);
     }
 
 
@@ -229,6 +232,8 @@ public class MainActivity extends AppCompatActivity implements
             showLoading();
             onBottomNavItemSelected(mSelectedItem);
             mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
+        } else if (mSelectedItem == R.id.action_favorites) {
+            onBottomNavItemSelected(mSelectedItem);
         } else {
             showOffline();
         }

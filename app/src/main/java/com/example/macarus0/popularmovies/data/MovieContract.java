@@ -127,7 +127,7 @@ public class MovieContract {
         public static final String COLUMN_FAVORITE_STATUS = "favorite";
 
         /* When the video was marked as favorite */
-        public static final String COLUMN_FAVORITE_DATE = "favorite_datea";
+        public static final String COLUMN_FAVORITE_DATE = "favorite_date";
 
 
         /* Get the Uri for a specific movie */

@@ -9,19 +9,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.macarus0.popularmovies.util.NetworkUtils;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 
-public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
+public class PosterAdapter extends RecyclerView.Adapter<PosterAdapter.ViewHolder> {
     final private MovieAdapterOnClickHandler mOnClickHandler;
     private final Context mContext;
     private Cursor mCursor;
     private final NetworkUtils mNetworkUtils;
 
-    public MovieAdapter(Context context, MovieAdapterOnClickHandler onClickHandler,
-                        NetworkUtils networkUtils) {
+    public PosterAdapter(Context context, MovieAdapterOnClickHandler onClickHandler,
+                         NetworkUtils networkUtils) {
         mContext = context;
         mOnClickHandler = onClickHandler;
         mNetworkUtils = networkUtils;
@@ -47,17 +49,26 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         mCursor.moveToPosition(position);
         String title = mCursor.getString(MainActivity.INDEX_POSTER_GRID_TITLE);
+        holder.titleTextView.setText(mCursor.getString(MainActivity.INDEX_POSTER_GRID_TITLE));
         holder.posterImageView.setContentDescription(title);
         Picasso.with(mContext).load(mNetworkUtils.getPosterUrl(
                 mCursor.getString(MainActivity.INDEX_POSTER_GRID_POSTER_PATH)))
                 .placeholder(R.drawable.placeholder)
-                .into(holder.posterImageView);
+                .into(holder.posterImageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        holder.titleTextView.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onError() {
+                        holder.titleTextView.setVisibility(View.VISIBLE);
+                    }
+                });
     }
-
-
 
     public interface MovieAdapterOnClickHandler {
         void onPosterClick(long id, int position);
@@ -65,10 +76,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final ImageView posterImageView;
+        final TextView titleTextView;
 
         ViewHolder(View v) {
             super(v);
             posterImageView = v.findViewById(R.id.poster_imageview);
+            titleTextView = v.findViewById(R.id.poster_textview);
             v.setOnClickListener(this);
         }
 

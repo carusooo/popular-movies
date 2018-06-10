@@ -19,7 +19,7 @@
             app:layout_constraintStart_toEndOf="@id/title_textview"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:contentDescription="Play video"
+            android:contentDescription="@string/detail_play_video_button_label"
             tools:src="@drawable/ic_sharp_play_circle_filled_24px" />
 
         <TextView

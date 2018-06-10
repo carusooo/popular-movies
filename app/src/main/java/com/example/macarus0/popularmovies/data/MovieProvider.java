@@ -111,7 +111,6 @@ public class MovieProvider extends ContentProvider {
         int rowsInserted = 0;
         String tableName;
         int onConflict = SQLiteDatabase.CONFLICT_REPLACE;
-        String nullColumnHack = null;
         switch (sUriMatcher.match(uri)) {
 
             case CODE_MOVIES_POPULAR:
@@ -152,7 +151,7 @@ public class MovieProvider extends ContentProvider {
             for (ContentValues value : values) {
                 long _id = db.insertWithOnConflict(
                         tableName,
-                        nullColumnHack,
+                        null,
                         value,
                         onConflict);
                 if (_id != -1) {
@@ -201,7 +200,7 @@ public class MovieProvider extends ContentProvider {
                         " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
                         + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID);
                 StringBuilder columns = new StringBuilder();
-                qb.appendColumns(columns, projection);
+                SQLiteQueryBuilder.appendColumns(columns, projection);
                 qb.appendWhere(MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1 ");
 
                 cursor = qb.query(db,

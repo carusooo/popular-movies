@@ -26,6 +26,12 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="PosterText" parent="AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:visibility">invisible</item>
+    </style>
+
     <style name="MainLoadingIndicator" parent="@style/SpinKitView.Large.CubeGrid">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -96,6 +102,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">16sp</item>
         <item name="android:padding">8dp</item>
+        <item name="android:focusableInTouchMode">false</item>
     </style>
 
     <style name="DetailLoadingIndicator" parent="@style/SpinKitView.Large.ThreeBounce">
