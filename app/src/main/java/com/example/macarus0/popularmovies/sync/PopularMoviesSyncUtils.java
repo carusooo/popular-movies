@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.example.macarus0.popularmovies.BuildConfig;
-import com.example.macarus0.popularmovies.R;
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
 import com.example.macarus0.popularmovies.util.NetworkUtils;
@@ -20,10 +19,10 @@ public class PopularMoviesSyncUtils {
 
 
     synchronized public static void initialize(@NonNull final Context context) {
-        /**
+        /*
          *  Checks if the database of popular movies needs to be reloaded or not
          * and start an ASyncTask to populate the ContentProvider
-         **/
+         */
 
         Log.d(TAG, "initializing");
 

@@ -67,6 +67,7 @@
         <item name="android:background">@drawable/ic_toggle_bg</item>
     </style>
 
+    <!--suppress CheckTagEmptyBody -->
     <style name="DetailFavoriteButton" parent="AppTheme">
         <item name="android:buttonStyleToggle">@style/Widget.Button.Toggle</item>
         <item name="android:textOn"></item>

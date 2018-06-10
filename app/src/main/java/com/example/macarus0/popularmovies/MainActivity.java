@@ -173,10 +173,8 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder;
-        String[] selectionArgs = null;
         String selection = MovieContract.MovieEntry.getSelectionForTodaysMovies();
         Uri uri = MovieContract.MovieEntry.POPULAR_URI;
-        sortOrder = null;
         switch (id) {
             case ID_POPULAR_MOVIE_LOADER:
                 sortOrder = MovieContract.MovieEntry.COLUMN_POPULARITY + " DESC LIMIT 20";
@@ -196,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements
                 uri,
                 POSTER_GRID_PROJECTION,
                 selection,
-                selectionArgs,
+                null,
                 sortOrder);
     }
 

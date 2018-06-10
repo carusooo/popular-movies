@@ -72,7 +72,8 @@
                 style="@style/DetailFavoriteButton"
                 app:layout_constraintEnd_toEndOf="@id/poster_imageview"
                 app:layout_constraintBottom_toBottomOf="@id/poster_imageview"
-                android:background="@drawable/ic_toggle_bg"/>
+                android:background="@drawable/ic_toggle_bg"
+                android:contentDescription="@string/detail_favorite_button_label"/>
 
 
             <TextView

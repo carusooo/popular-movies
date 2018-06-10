@@ -274,7 +274,7 @@ public class MovieProvider extends ContentProvider {
     public int update(@NonNull Uri uri, ContentValues values, String selection,
                   String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        long _id = -1;
+        long _id;
         switch (sUriMatcher.match(uri)) {
             case CODE_MOVIES_FAVORITES:
                 db.beginTransaction();
