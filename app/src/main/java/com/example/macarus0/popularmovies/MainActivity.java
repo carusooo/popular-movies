@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements
     private MovieAdapter mMovieAdapter;
     private int mPosition = RecyclerView.NO_POSITION;
     private GridLayoutManager mLayoutManager;
-    private int mSelectedItem;
+    private int mSelectedItem = R.id.action_popular;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements
     private void fetchData() {
         if(NetworkUtils.isOnline(this)) {
             // Set up the CursorLoaderManager to detect changes in the data and update the views
-            getSupportLoaderManager().initLoader(ID_POPULAR_MOVIE_LOADER, null, this);
+            onBottomNavItemSelected(mSelectedItem);
             // Start the data sync to load in the movies
             PopularMoviesSyncUtils.initialize(this);
         } else {
@@ -226,9 +226,9 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         mSelectedItem = item.getItemId();
         if(NetworkUtils.isOnline(this)) {
+            showLoading();
             onBottomNavItemSelected(mSelectedItem);
             mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
-            showLoading();
         } else {
             showOffline();
         }
@@ -240,14 +240,14 @@ public class MainActivity extends AppCompatActivity implements
         switch (mSelectedItem) {
             case R.id.action_popular:
                 getSupportLoaderManager().destroyLoader(ID_FAVORITE_MOVIE_LOADER);
-                getSupportLoaderManager().restartLoader(ID_POPULAR_MOVIE_LOADER, null, this);
+                getSupportLoaderManager().initLoader(ID_POPULAR_MOVIE_LOADER, null, this);
                 break;
             case R.id.action_top_rated:
                 getSupportLoaderManager().destroyLoader(ID_FAVORITE_MOVIE_LOADER);
-                getSupportLoaderManager().restartLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
+                getSupportLoaderManager().initLoader(ID_TOP_RATED_MOVIE_LOADER, null, this);
                 break;
             case R.id.action_favorites:
-                getSupportLoaderManager().restartLoader(ID_FAVORITE_MOVIE_LOADER, null, this);
+                getSupportLoaderManager().initLoader(ID_FAVORITE_MOVIE_LOADER, null, this);
                 break;
         }
 
