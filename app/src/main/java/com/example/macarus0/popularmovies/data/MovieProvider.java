@@ -359,7 +359,7 @@ public class MovieProvider extends ContentProvider {
                     "CREATE TABLE " + MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME+ "(" +
                             MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID + " TEXT PRIMARY KEY," +
                             MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS+ " INTEGER DEFAULT 0, " +
-                            MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " DATETIME DEFAULT CURRENT_DATE" +
+                            MovieContract.MovieEntry.COLUMN_FAVORITE_DATE + " TEXT DEFAULT CURRENT_TIMESTAMP" +
                             ");";
             db.execSQL(SQL_CREATE_MOVIE_FAVORITE_TABLE);
 
