@@ -78,9 +78,6 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mBottomNavigationView.setOnNavigationItemSelectedListener(this);
-        mSelectedItem = mBottomNavigationView.getSelectedItemId();
-
         // Set up the GridLayout of poster images
         mLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -92,10 +89,12 @@ public class MainActivity extends AppCompatActivity implements
         if (savedInstanceState != null) {
             mLayoutManager.onRestoreInstanceState(savedInstanceState);
             mPosition = savedInstanceState.getInt(SCROLL_POSITION);
-            mBottomNavigationView.setSelectedItemId(mSelectedItem);
             mSelectedItem = savedInstanceState.getInt(NAVIGATION_SELECTION);
-            this.onBottomNavItemSelected(mSelectedItem);
+            mBottomNavigationView.setSelectedItemId(mSelectedItem);
         }
+
+        mBottomNavigationView.setOnNavigationItemSelectedListener(this);
+        mSelectedItem = mBottomNavigationView.getSelectedItemId();
 
         showLoading();
         fetchData();
@@ -161,18 +160,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null) {
-            mPosition = savedInstanceState.getInt(SCROLL_POSITION);
-            mSelectedItem = savedInstanceState.getInt(NAVIGATION_SELECTION);
-            mLayoutManager.onRestoreInstanceState(savedInstanceState);
-        }
-    }
-
-    @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        Log.d("onLoadFinished", String.format("Swapping Cursor, retrieved %d movies", data.getCount()));
+        Log.d("onLoadFinished", String.format("Swapping Cursor, retrieved %d movies, scrolling to %d",
+                data.getCount(), mPosition));
         mPosterAdapter.swapCursor(data);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mRecyclerView.smoothScrollToPosition(mPosition);
@@ -230,8 +220,8 @@ public class MainActivity extends AppCompatActivity implements
         mSelectedItem = item.getItemId();
         if(NetworkUtils.isOnline(this)) {
             showLoading();
+            mPosition = RecyclerView.NO_POSITION;
             onBottomNavItemSelected(mSelectedItem);
-            mPosition = RecyclerView.NO_POSITION; // Reset the scroll position
         } else if (mSelectedItem == R.id.action_favorites) {
             onBottomNavItemSelected(mSelectedItem);
         } else {
