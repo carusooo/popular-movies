@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
         mPosterAdapter = new PosterAdapter(this, this,
-                NetworkUtils.getInstance(getString(R.string.tmbd_api_key)));
+                NetworkUtils.getInstance(BuildConfig.MY_MOVIE_DB_API_KEY));
         mRecyclerView.setAdapter(mPosterAdapter);
 
         if (savedInstanceState != null) {

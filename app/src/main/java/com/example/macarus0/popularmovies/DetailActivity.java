@@ -213,7 +213,7 @@ public class DetailActivity extends AppCompatActivity implements
         Intent intent = getIntent();
         mMovieId = intent.getStringExtra(EXTRA_DETAIL_MOVIE_ID);
 
-        mNetworkUtils = NetworkUtils.getInstance(getString(R.string.tmbd_api_key));
+        mNetworkUtils = NetworkUtils.getInstance(BuildConfig.MY_MOVIE_DB_API_KEY);
         showLoading();
 
         mFavoriteToggleButton.setOnClickListener(this);

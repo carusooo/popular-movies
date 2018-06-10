@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.macarus0.popularmovies.BuildConfig;
 import com.example.macarus0.popularmovies.R;
 import com.example.macarus0.popularmovies.data.MovieContract;
 import com.example.macarus0.popularmovies.util.MovieJSONUtilities;
@@ -69,7 +70,7 @@ public class PopularMoviesSyncUtils {
                 return new MovieJSONUtilities().parsePopularJSON(jsonString);
             }
         };
-        final NetworkUtils networkUtils = NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key));
+        final NetworkUtils networkUtils = NetworkUtils.getInstance(BuildConfig.MY_MOVIE_DB_API_KEY);
 
         final String[] urls = new String[]{
                 networkUtils.getPopularMoviesUrl(),
@@ -98,7 +99,7 @@ public class PopularMoviesSyncUtils {
      */
     public static void syncMovieDetails(@NonNull final Context context, final String movieId ) {
         Log.d(TAG, "Kicking off details sync");
-        final NetworkUtils networkUtils = NetworkUtils.getInstance(context.getString(R.string.tmbd_api_key));
+        final NetworkUtils networkUtils = NetworkUtils.getInstance(BuildConfig.MY_MOVIE_DB_API_KEY);
 
         PopularMoviesSyncTask.SyncTask syncTask = new PopularMoviesSyncTask.SyncTask() {
             @Override
