@@ -199,13 +199,10 @@ public class MovieProvider extends ContentProvider {
                         " JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
                         " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
                         + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID);
-                StringBuilder columns = new StringBuilder();
-                SQLiteQueryBuilder.appendColumns(columns, projection);
-                qb.appendWhere(MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1 ");
 
                 cursor = qb.query(db,
                         projection,
-                        selection,
+                        MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS + "=1",
                         selectionArgs,
                         null,
                         null,
@@ -227,14 +224,18 @@ public class MovieProvider extends ContentProvider {
             case CODE_MOVIE_DETAILS:
                 Log.d("DetailsQuery", String.format("Looking for %s", uri.getLastPathSegment()));
                 selectionArguments = new String[]{uri.getLastPathSegment()};
-                cursor = db.rawQuery("SELECT " +MovieContract.MovieEntry.COLUMN_RUNTIME + ", " +
-                                MovieContract.MovieEntry.COLUMN_FAVORITE_STATUS  +
-                                " FROM "+ MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME+
-                                " LEFT JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
-                                " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
-                                + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID +
-                                " WHERE " + MovieContract.MovieEntry.COLUMN_ID + "=?; ",
-                        selectionArguments);
+                qb = new SQLiteQueryBuilder();
+                qb.setTables(MovieContract.MovieEntry.MOVIE_DETAIL_TABLE_NAME+
+                        " LEFT JOIN "+ MovieContract.MovieEntry.MOVIE_FAVORITE_TABLE_NAME +
+                        " ON " + MovieContract.MovieEntry.COLUMN_ID+ " = "
+                        + MovieContract.MovieEntry.COLUMN_FAVORITE_MOVIE_ID);
+                cursor = qb.query(db,
+                        projection,
+                        MovieContract.MovieEntry.COLUMN_ID + "=?",
+                        selectionArguments,
+                        null,
+                        null,
+                        sortOrder);
                 break;
 
             case CODE_MOVIE_REVIEWS:
@@ -299,7 +300,7 @@ public class MovieProvider extends ContentProvider {
 
     class MovieDbHelper extends SQLiteOpenHelper {
         static final String MOVIE_DB_NAME = "movies.db";
-        static final int MOVIE_DB_VERSION = 1;
+        static final int MOVIE_DB_VERSION = 2;
         private final String TAG = MovieDbHelper.class.getName();
 
         MovieDbHelper(Context context) {
